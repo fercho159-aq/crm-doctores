@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui";
+import { Stepper, StepperFooter, type Paso } from "@/components/Stepper";
 import { cargarExpediente, nombreCompleto } from "./expediente";
 import { edadDe } from "@/lib/pdf";
 
@@ -14,23 +14,32 @@ export default async function ExpedienteLayout({
   const { id } = await params;
   const { paciente } = await cargarExpediente(id, { sinBitacora: true });
 
-  const ultimaHoja = await db.hojaPrimerLlenado.findFirst({
-    where: { pacienteId: id, estado: "CERRADA" },
-    orderBy: { version: "desc" },
-    select: { alergias: true },
-  });
+  const [ultimaHoja, notasFirmadas, recetasEmitidas, qxRealizadas, qxTotal, docsTotal] = await Promise.all([
+    db.hojaPrimerLlenado.findFirst({
+      where: { pacienteId: id, estado: "CERRADA" },
+      orderBy: { version: "desc" },
+      select: { alergias: true },
+    }),
+    db.notaEvolucion.count({ where: { asignacion: { pacienteId: id }, estado: "FIRMADA" } }),
+    db.receta.count({ where: { asignacion: { pacienteId: id }, estado: "EMITIDA" } }),
+    db.expedienteQuirurgico.count({ where: { pacienteId: id, estado: "REALIZADA" } }),
+    db.expedienteQuirurgico.count({ where: { pacienteId: id } }),
+    db.documento.count({ where: { pacienteId: id } }),
+  ]);
 
   const activas = paciente.asignaciones.filter((a) => a.estado === "ACTIVA");
   const alergias = ultimaHoja?.alergias;
   const tieneAlergias = alergias && alergias.trim().toUpperCase() !== "NINGUNA CONOCIDA";
 
-  const tabs = [
-    { href: `/pacientes/${id}`, label: "Resumen" },
-    { href: `/pacientes/${id}/historia`, label: "Historia clínica" },
-    { href: `/pacientes/${id}/notas`, label: "Notas" },
-    { href: `/pacientes/${id}/recetas`, label: "Recetas" },
-    { href: `/pacientes/${id}/cirugias`, label: "Cirugías" },
-    { href: `/pacientes/${id}/documentos`, label: "Documentos" },
+  // Flujo clínico por pasos (sustituye a las pestañas): el avance se marca con
+  // el estado real del expediente.
+  const pasos: Paso[] = [
+    { href: `/pacientes/${id}`, label: "Resumen", completado: paciente.asignaciones.length > 0 },
+    { href: `/pacientes/${id}/historia`, label: "Historia clínica", completado: !!ultimaHoja },
+    { href: `/pacientes/${id}/notas`, label: "Consulta y notas", completado: notasFirmadas > 0 },
+    { href: `/pacientes/${id}/recetas`, label: "Receta", completado: recetasEmitidas > 0, opcional: true },
+    { href: `/pacientes/${id}/cirugias`, label: "Cirugía", completado: qxTotal > 0 && qxRealizadas === qxTotal, opcional: true },
+    { href: `/pacientes/${id}/documentos`, label: "Documentos", completado: docsTotal > 0 },
   ];
 
   return (
@@ -62,19 +71,13 @@ export default async function ExpedienteLayout({
         </div>
       </div>
 
-      <nav className="flex flex-wrap gap-1 border-b border-slate-200">
-        {tabs.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className="rounded-t-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-800"
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+        <Stepper pasos={pasos} />
+      </div>
 
       {children}
+
+      <StepperFooter pasos={pasos} />
     </div>
   );
 }

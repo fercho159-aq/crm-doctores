@@ -19,6 +19,16 @@ export default async function HojaPage({ params }: { params: Promise<{ pacienteI
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
+      {!soloLectura && (
+        <div className="flex items-center gap-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">✓</span>
+          <div className="h-0.5 w-8 bg-blue-600" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-700 text-sm font-bold text-white">2</span>
+          <p className="ml-2 text-sm text-slate-500">
+            Paso 2 de 2 — <strong className="text-slate-700">Hoja clínica y signos vitales</strong>
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">

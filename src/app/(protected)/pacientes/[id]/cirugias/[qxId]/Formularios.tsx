@@ -39,7 +39,7 @@ export function NotaPreForm({ qxId, editable, firmada, inicial }: { qxId: string
   return (
     <Card>
       <CardHeader
-        title="Nota preoperatoria (NOM-004 8.5)"
+        title="Paso 1 — Nota preoperatoria (NOM-004 8.5)"
         action={firmada ? <Badge tone="green">Firmada — inmutable</Badge> : <Badge tone="amber">Borrador</Badge>}
       />
       <CardBody>
@@ -87,7 +87,7 @@ export function NotaPostForm({ qxId, editable, firmada, inicial }: { qxId: strin
   return (
     <Card>
       <CardHeader
-        title="Nota postoperatoria (NOM-004 8.8) — Descripción del procedimiento quirúrgico"
+        title="Paso 3 — Nota postoperatoria (NOM-004 8.8) — Descripción del procedimiento quirúrgico"
         action={firmada ? <Badge tone="green">Firmada — inmutable</Badge> : <Badge tone="amber">Borrador</Badge>}
       />
       <CardBody>
@@ -200,7 +200,7 @@ export function CitasQx({
   const [state, formAction] = useActionState(programarCita.bind(null, qxId), {});
   return (
     <Card>
-      <CardHeader title="Citas postoperatorias" subtitle="Seguimiento: retiro de puntos, valoración, curaciones…" />
+      <CardHeader title="Paso 4 — Citas postoperatorias" subtitle="Seguimiento: retiro de puntos, valoración, curaciones…" />
       <CardBody>
         {citas.length === 0 ? (
           <p className="py-2 text-sm text-slate-500">Sin citas programadas.</p>

@@ -39,7 +39,7 @@ export function FormatosQx({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-800">Formatos y consentimientos (firma en tableta)</h3>
+      <h3 className="text-lg font-semibold text-slate-800">Paso 2 — Consentimientos y autorización (firma en tableta)</h3>
 
       <Colapsable
         titulo="Carta de consentimiento bajo información (quirúrgico)"

@@ -68,6 +68,17 @@ export default async function QxDetalle({ params }: { params: Promise<{ id: stri
         }}
       />
 
+      {(esPropio || user.rol === "ADMIN") && (
+        <FormatosQx
+          qxId={qx.id}
+          prefill={{
+            diagnostico: qx.notaPre?.diagnosticoPreoperatorio ?? "",
+            plan: qx.notaPre?.planQuirurgico ?? "",
+            tipoCirugia: qx.notaPre?.tipoCirugia ?? "",
+          }}
+        />
+      )}
+
       <NotaPostForm
         qxId={qx.id}
         editable={esPropio && !postFirmada}
@@ -91,17 +102,6 @@ export default async function QxDetalle({ params }: { params: Promise<{ id: stri
           envioPiezasPatologia: qx.notaPost?.envioPiezasPatologia ?? "",
         }}
       />
-
-      {(esPropio || user.rol === "ADMIN") && (
-        <FormatosQx
-          qxId={qx.id}
-          prefill={{
-            diagnostico: qx.notaPre?.diagnosticoPreoperatorio ?? "",
-            plan: qx.notaPre?.planQuirurgico ?? "",
-            tipoCirugia: qx.notaPre?.tipoCirugia ?? "",
-          }}
-        />
-      )}
 
       <CitasQx
         qxId={qx.id}
