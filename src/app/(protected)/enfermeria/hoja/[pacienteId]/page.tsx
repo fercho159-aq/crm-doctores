@@ -1,0 +1,66 @@
+import { notFound } from "next/navigation";
+import { requireRole } from "@/lib/authz";
+import { db } from "@/lib/db";
+import { Badge } from "@/components/ui";
+import { HojaForm } from "./HojaForm";
+
+export default async function HojaPage({ params }: { params: Promise<{ pacienteId: string }> }) {
+  const user = await requireRole("ENFERMERIA", "ADMIN", "DOCTOR");
+  const { pacienteId } = await params;
+  const paciente = await db.paciente.findUnique({ where: { id: pacienteId } });
+  if (!paciente) notFound();
+
+  const hoja =
+    (await db.hojaPrimerLlenado.findFirst({ where: { pacienteId, estado: "BORRADOR" }, orderBy: { version: "desc" } })) ??
+    (await db.hojaPrimerLlenado.findFirst({ where: { pacienteId }, orderBy: { version: "desc" } }));
+
+  // Doctores y Admin: siempre lectura. Enfermería: lectura si ya está cerrada.
+  const soloLectura = user.rol !== "ENFERMERIA" || hoja?.estado === "CERRADA";
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Hoja de primer llenado {hoja ? `— v${hoja.version}` : ""}
+          </h1>
+          <p className="text-slate-500">
+            {paciente.nombre} {paciente.apellidoPaterno} {paciente.apellidoMaterno} · {paciente.numeroExpediente}
+          </p>
+        </div>
+        {soloLectura ? <Badge tone="green">Cerrada — solo lectura</Badge> : <Badge tone="amber">Borrador</Badge>}
+      </div>
+      <HojaForm
+        pacienteId={pacienteId}
+        sexo={paciente.sexo}
+        soloLectura={!!soloLectura}
+        inicial={hoja ? {
+          motivoConsulta: hoja.motivoConsulta ?? "",
+          padecimientoActual: hoja.padecimientoActual ?? "",
+          especialidadesSugeridas: hoja.especialidadesSugeridas ?? "",
+          antecedentesHeredofamiliares: hoja.antecedentesHeredofamiliares ?? "",
+          antecedentesPatologicos: hoja.antecedentesPatologicos ?? "",
+          antecedentesNoPatologicos: hoja.antecedentesNoPatologicos ?? "",
+          antecedentesGinecoObstetricos: hoja.antecedentesGinecoObstetricos ?? "",
+          alergias: hoja.alergias ?? "",
+          medicamentosActuales: hoja.medicamentosActuales ?? "",
+          interrogatorioAparatos: hoja.interrogatorioAparatos ?? "",
+          cirugiaDeseada: hoja.cirugiaDeseada ?? "",
+          presupuesto: hoja.presupuesto ?? "",
+          fechaProgramadaDeseada: hoja.fechaProgramadaDeseada ?? "",
+          taSistolica: hoja.taSistolica?.toString() ?? "",
+          taDiastolica: hoja.taDiastolica?.toString() ?? "",
+          fc: hoja.fc?.toString() ?? "",
+          fr: hoja.fr?.toString() ?? "",
+          temperatura: hoja.temperatura?.toString() ?? "",
+          pesoKg: hoja.pesoKg?.toString() ?? "",
+          tallaCm: hoja.tallaCm?.toString() ?? "",
+          spo2: hoja.spo2?.toString() ?? "",
+          glucosa: hoja.glucosa?.toString() ?? "",
+          escalaDolor: hoja.escalaDolor?.toString() ?? "",
+          observacionesEnfermeria: hoja.observacionesEnfermeria ?? "",
+        } : undefined}
+      />
+    </div>
+  );
+}

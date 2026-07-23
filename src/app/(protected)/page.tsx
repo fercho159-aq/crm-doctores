@@ -1,0 +1,9 @@
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/authz";
+
+export default async function Home() {
+  const user = await requireUser();
+  if (user.rol === "ADMIN") redirect("/admin");
+  if (user.rol === "DOCTOR") redirect("/mi-consulta");
+  redirect("/enfermeria");
+}

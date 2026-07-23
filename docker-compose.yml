@@ -1,0 +1,38 @@
+services:
+  app:
+    build: .
+    container_name: medtower-crm
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3020:3000"
+    environment:
+      DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      CRON_SECRET: ${CRON_SECRET}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      UPLOADS_DIR: /data/uploads
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: medtower-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: medtower
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: medtower_crm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medtower -d medtower_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  uploads:
