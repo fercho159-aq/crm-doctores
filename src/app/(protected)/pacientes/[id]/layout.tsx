@@ -30,6 +30,7 @@ export default async function ExpedienteLayout({
     { href: `/pacientes/${id}/notas`, label: "Notas" },
     { href: `/pacientes/${id}/recetas`, label: "Recetas" },
     { href: `/pacientes/${id}/cirugias`, label: "Cirugías" },
+    { href: `/pacientes/${id}/documentos`, label: "Documentos" },
   ];
 
   return (
