@@ -27,20 +27,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
-# Prisma CLI para migrate deploy + seed en el arranque
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
-COPY --from=builder /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=builder /app/node_modules/@esbuild ./node_modules/@esbuild
-COPY --from=builder /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
-COPY --from=builder /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
-COPY --from=builder /app/node_modules/@node-rs ./node_modules/@node-rs
-COPY prisma ./prisma
-COPY docker-entrypoint.sh ./
-
-RUN mkdir -p /data/uploads && chmod +x docker-entrypoint.sh
+RUN mkdir -p /data/uploads
 
 EXPOSE 3000
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["node", "server.js"]

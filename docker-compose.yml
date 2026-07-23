@@ -4,7 +4,7 @@ services:
     container_name: medtower-crm
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3020:3000"
+      - "127.0.0.1:3021:3000"
     environment:
       DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
       RESEND_API_KEY: ${RESEND_API_KEY:-}
@@ -13,6 +13,25 @@ services:
       UPLOADS_DIR: /data/uploads
     volumes:
       - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # Migraciones + triggers de inmutabilidad + seed (idempotente); corre y termina.
+  migrate:
+    build:
+      context: .
+      target: builder
+    container_name: medtower-migrate
+    command: >
+      sh -c "npx prisma migrate deploy
+      && npx prisma db execute --file prisma/immutability.sql
+      && npx tsx prisma/seed.ts"
+    environment:
+      DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy
