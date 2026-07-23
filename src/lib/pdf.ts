@@ -26,6 +26,35 @@ export function fechaLarga(d: Date): string {
   });
 }
 
+// Renderiza cualquier formato React-PDF, lo guarda en /data/uploads y registra
+// el documento con hash SHA-256.
+export async function guardarFormatoPdf(opts: {
+  element: React.ReactElement;
+  pacienteId: string;
+  tipo: TipoDocumento;
+  nombreArchivo: string;
+  subidoPorId: string;
+  subcarpeta?: string;
+}): Promise<{ documentoId: string; hash: string }> {
+  const buffer = await renderToBuffer(opts.element as never);
+  const hash = createHash("sha256").update(buffer).digest("hex");
+  const dir = path.join(UPLOADS_DIR, opts.subcarpeta ?? "formatos", String(new Date().getFullYear()));
+  await mkdir(dir, { recursive: true });
+  const ruta = path.join(dir, `${Date.now()}-${opts.nombreArchivo}`);
+  await writeFile(ruta, buffer);
+  const doc = await db.documento.create({
+    data: {
+      pacienteId: opts.pacienteId,
+      tipo: opts.tipo,
+      nombreArchivo: opts.nombreArchivo,
+      ruta,
+      hashSha256: hash,
+      subidoPorId: opts.subidoPorId,
+    },
+  });
+  return { documentoId: doc.id, hash };
+}
+
 // Genera el PDF, lo guarda en /data/uploads y registra el documento con hash.
 export async function generarPdfReceta(
   data: RecetaPdfData,

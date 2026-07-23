@@ -6,6 +6,11 @@ import { SubirDocumentoForm } from "./SubirDocumentoForm";
 const TIPO: Record<string, { label: string; tone: "blue" | "green" | "amber" | "slate" }> = {
   RECETA: { label: "Receta", tone: "blue" },
   CONSENTIMIENTO: { label: "Consentimiento / contrato", tone: "green" },
+  CONSENTIMIENTO_ANESTESIA: { label: "Consentimiento de anestesia", tone: "green" },
+  AUTORIZACION_QX: { label: "Autorización quirúrgica", tone: "green" },
+  HISTORIA_CLINICA: { label: "Historia clínica", tone: "blue" },
+  NOTA_EVOLUCION: { label: "Nota de evolución", tone: "blue" },
+  NOTA_QUIRURGICA: { label: "Notas quirúrgicas", tone: "blue" },
   ESTUDIO: { label: "Estudio", tone: "amber" },
   RESUMEN_CLINICO: { label: "Resumen clínico", tone: "slate" },
   OTRO: { label: "Otro", tone: "slate" },

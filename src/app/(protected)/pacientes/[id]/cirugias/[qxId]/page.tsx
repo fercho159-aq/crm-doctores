@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { Badge, Card, CardHeader, CardBody } from "@/components/ui";
+import { Badge, Card, CardHeader, CardBody, Button } from "@/components/ui";
 import { cargarExpediente } from "../../expediente";
 import { NotaPreForm, NotaPostForm, CitasQx } from "./Formularios";
+import { FormatosQx } from "./FormatosQx";
+import { generarNotaQuirurgica } from "@/actions/formatos";
 
 export default async function QxDetalle({ params }: { params: Promise<{ id: string; qxId: string }> }) {
   const { id, qxId } = await params;
-  const { miAsignacionActiva } = await cargarExpediente(id, { sinBitacora: true });
+  const { user, miAsignacionActiva } = await cargarExpediente(id, { sinBitacora: true });
 
   const qx = await db.expedienteQuirurgico.findUnique({
     where: { id: qxId },
@@ -36,12 +38,19 @@ export default async function QxDetalle({ params }: { params: Promise<{ id: stri
           }${qx.quirofanoSede ? ` · ${qx.quirofanoSede}` : ""}`}
           action={<Badge tone={qx.estado === "REALIZADA" ? "green" : "blue"}>{qx.estado}</Badge>}
         />
-        <CardBody>
+        <CardBody className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-500">
             Consentimiento informado: {qx.consentimientoFecha
               ? `recabado el ${qx.consentimientoFecha.toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" })}`
-              : "pendiente de registrar (adjunto escaneado — formato MIT «Carta de consentimiento bajo información»)."}
+              : "pendiente — genérelo abajo con firma en tableta."}
           </p>
+          {(qx.notaPre || qx.notaPost) && (
+            <form action={generarNotaQuirurgica.bind(null, qx.id) as unknown as (fd: FormData) => Promise<void>}>
+              <Button type="submit" variant="secondary" size="sm">
+                Descargar PDF de notas quirúrgicas
+              </Button>
+            </form>
+          )}
         </CardBody>
       </Card>
 
@@ -82,6 +91,17 @@ export default async function QxDetalle({ params }: { params: Promise<{ id: stri
           envioPiezasPatologia: qx.notaPost?.envioPiezasPatologia ?? "",
         }}
       />
+
+      {(esPropio || user.rol === "ADMIN") && (
+        <FormatosQx
+          qxId={qx.id}
+          prefill={{
+            diagnostico: qx.notaPre?.diagnosticoPreoperatorio ?? "",
+            plan: qx.notaPre?.planQuirurgico ?? "",
+            tipoCirugia: qx.notaPre?.tipoCirugia ?? "",
+          }}
+        />
+      )}
 
       <CitasQx
         qxId={qx.id}

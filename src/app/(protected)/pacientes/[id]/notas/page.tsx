@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
-import { Card, CardHeader, CardBody, Badge, EmptyState } from "@/components/ui";
+import { Card, CardHeader, CardBody, Badge, EmptyState, Button } from "@/components/ui";
 import { cargarExpediente } from "../expediente";
 import { NotaEditor, AdendaForm } from "./NotaEditor";
+import { generarNotaEvolucionPdf } from "@/actions/formatos";
 
 export default async function NotasPage({
   params,
@@ -85,6 +86,11 @@ export default async function NotasPage({
                   </div>
                 )}
 
+                {n.estado === "FIRMADA" && (
+                  <form action={generarNotaEvolucionPdf.bind(null, n.id) as unknown as (fd: FormData) => Promise<void>}>
+                    <Button type="submit" variant="secondary" size="sm">Descargar PDF de la nota</Button>
+                  </form>
+                )}
                 {n.estado === "FIRMADA" && miAsignacionActiva && n.asignacionId === miAsignacionActiva.id && (
                   <AdendaForm notaPadreId={n.id} />
                 )}

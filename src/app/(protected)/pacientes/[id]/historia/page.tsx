@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { Card, CardHeader, CardBody, EmptyState } from "@/components/ui";
+import { Card, CardHeader, CardBody, EmptyState, Button } from "@/components/ui";
 import { cargarExpediente } from "../expediente";
+import { generarHistoriaClinica } from "@/actions/formatos";
 
 function Campo({ label, valor }: { label: string; valor?: string | null }) {
   if (!valor) return null;
@@ -28,6 +29,13 @@ export default async function HistoriaPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <form action={generarHistoriaClinica.bind(null, id) as unknown as (fd: FormData) => Promise<void>}>
+          <Button type="submit" variant="secondary" size="sm">
+            Generar PDF de historia clínica (formato MIT)
+          </Button>
+        </form>
+      </div>
       {hojas.map((h, i) => (
         <Card key={h.id}>
           <CardHeader
