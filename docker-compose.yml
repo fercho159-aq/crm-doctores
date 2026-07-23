@@ -27,7 +27,7 @@ services:
     container_name: medtower-migrate
     command: >
       sh -c "npx prisma migrate deploy
-      && npx prisma db execute --file prisma/immutability.sql
+      && npx prisma db execute --schema prisma/schema.prisma --file prisma/immutability.sql
       && npx tsx prisma/seed.ts"
     environment:
       DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
