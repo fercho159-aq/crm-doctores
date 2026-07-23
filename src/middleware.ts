@@ -7,11 +7,10 @@ export function middleware(request: NextRequest) {
   const isPublic = pathname === "/login" || pathname.startsWith("/api/cron");
   const hasSession = request.cookies.has("mit_session");
 
+  // Nunca se redirige /login → / solo por existir la cookie: si la sesión es
+  // inválida provocaría un bucle de redirecciones. El login siempre se muestra.
   if (!isPublic && !hasSession) {
     return NextResponse.redirect(new URL("/login", request.url));
-  }
-  if (pathname === "/login" && hasSession) {
-    return NextResponse.redirect(new URL("/", request.url));
   }
   return NextResponse.next();
 }
