@@ -1,0 +1,371 @@
+% !TEX program = xelatex
+\documentclass[11pt,letterpaper]{article}
+
+% ============================================================
+% PAQUETES
+% ============================================================
+\usepackage[spanish,es-tabla]{babel}
+\usepackage{fontspec}
+\usepackage{montserrat}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, calc}
+
+\geometry{top=2cm, bottom=2cm, left=1.8cm, right=1.8cm}
+\setlength{\headheight}{22pt}
+\addtolength{\topmargin}{-10pt}
+
+% ============================================================
+% COLORES --- MAW SOLUCIONES (corporativo)
+% ============================================================
+\definecolor{azulcom}{HTML}{000000}
+\definecolor{doradocom}{HTML}{7A7A7A}
+\definecolor{grisbar}{HTML}{1A1A1A}
+\definecolor{grisfondo}{HTML}{F2F2F2}
+\definecolor{gristexto}{HTML}{4A4A4A}
+\definecolor{verdeok}{HTML}{000000}
+\definecolor{rojonota}{HTML}{000000}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=azulcom,
+    urlcolor=azulcom
+}
+
+% ============================================================
+% ENCABEZADO / PIE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\color{gristexto}\textbf{MAW Soluciones} \textbar{} Propuesta Comercial}
+\fancyhead[R]{\footnotesize\color{gristexto}Julio 2026}
+\fancyfoot[C]{\footnotesize\color{gristexto}\thepage}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{azulcom}\leaders\hrule height \headrulewidth\hfill}}
+
+% ============================================================
+% COMANDOS / CAJAS
+% ============================================================
+\newcommand{\tituloCot}[1]{%
+    \noindent{\LARGE\bfseries\color{azulcom}PROPUESTA \textbar{} #1}\par
+    \vspace{2pt}
+    {\color{doradocom}\rule{\linewidth}{1.8pt}}\par
+    \vspace{14pt}
+}
+
+\newcommand{\barraEncabezado}{%
+    \noindent
+    \begin{tikzpicture}
+        \fill[grisbar] (0,0) rectangle (\linewidth, 0.9);
+        \node[white, anchor=west, font=\bfseries] at (0.25, 0.45) {Descripción};
+        \node[white, anchor=west, font=\bfseries] at (12.4, 0.45) {Inversión};
+    \end{tikzpicture}\par
+    \vspace{8pt}
+}
+
+\newcommand{\precioBox}[2]{%
+    {\Large\bfseries\color{azulcom}MXN #1}\par\vspace{2pt}%
+    {\footnotesize\color{gristexto}#2}\par%
+}
+
+\newtcolorbox{cajaNota}{
+    colback=doradocom!10,
+    colframe=doradocom,
+    rounded corners,
+    boxrule=1pt,
+    left=10pt, right=10pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaInfo}[1][]{
+    colback=azulcom!5,
+    colframe=azulcom,
+    fonttitle=\bfseries\color{white},
+    colbacktitle=azulcom,
+    title=#1,
+    rounded corners,
+    boxrule=1pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaTotal}{
+    colback=verdeok!8,
+    colframe=verdeok,
+    rounded corners,
+    boxrule=1.5pt,
+    left=10pt, right=10pt, top=10pt, bottom=10pt
+}
+
+\newcolumntype{D}{>{\RaggedRight\arraybackslash}p{12.2cm}}
+\newcolumntype{I}{>{\centering\arraybackslash}p{4.2cm}}
+
+\renewcommand{\arraystretch}{1.35}
+
+% ============================================================
+% DOCUMENTO
+% ============================================================
+\begin{document}
+
+\tituloCot{Sistema CRM y Expediente Clínico Electrónico --- Medical Tower}
+
+\noindent{\small\color{gristexto}Cliente: \textbf{MIT --- Medical Tower} \quad\textbar\quad Preparado por: \textbf{MAW Soluciones} \quad\textbar\quad Vigencia: 30 días naturales}
+
+\vspace{10pt}
+
+% ============================================================
+% SALUDO
+% ============================================================
+\noindent Estimados miembros de \textbf{MIT}:
+
+\vspace{6pt}
+
+\noindent En MAW Soluciones agradecemos la oportunidad de presentarle esta propuesta. Entendemos que Medical Tower requiere llevar el historial clínico de sus pacientes de forma ordenada y conforme a lo que solicita la autoridad sanitaria, y que hoy ese proceso depende de hojas y capturas manuales. A continuación detallamos un sistema diseñado para que el expediente de cada paciente viva en un solo lugar, accesible para cada especialidad, con recetas digitales y seguimiento quirúrgico incluidos.
+
+\vspace{14pt}
+
+\begin{cajaInfo}[Resumen Ejecutivo]
+Proponemos el desarrollo de un \textbf{sistema web de expediente clínico electrónico (tipo CRM médico)} para Medical Tower. Enfermería captura la hoja inicial del paciente; los doctores de cada especialidad (traumatología, neurología, cardiología, cirugía estética, entre otras) asignan a sus pacientes, llevan sus notas, \textbf{emiten recetas digitales que llegan en automático al correo del paciente}, y registran expedientes quirúrgicos y citas postoperatorias. El resultado: \textbf{un expediente único por paciente}, visible entre especialidades, \textbf{cumplimiento ante la autoridad} y \textbf{cero papeleo disperso}.
+\end{cajaInfo}
+
+\vspace{14pt}
+
+% ============================================================
+% ALCANCE TÉCNICO
+% ============================================================
+{\large\bfseries\color{azulcom}1. Alcance del Sistema}\\[4pt]
+{\color{doradocom}\rule{\linewidth}{1pt}}
+
+\vspace{8pt}
+
+\noindent El sistema es una \textbf{plataforma web} a la que se accede desde cualquier computadora del consultorio, con usuarios y permisos diferenciados. Está compuesto por los siguientes módulos:
+
+\vspace{6pt}
+
+\begin{itemize}[leftmargin=16pt, itemsep=4pt, topsep=4pt]
+    \item \textbf{Primer llenado (Enfermería):} Hoja de captura inicial del paciente: datos generales, antecedentes e historia clínica de ingreso. Es la puerta de entrada de todo paciente al sistema.
+    \item \textbf{Gestión de pacientes por especialidad (Doctores):} Cada doctor ve el listado de pacientes capturados y asigna a los suyos. Un mismo paciente puede estar en \textbf{varias especialidades a la vez} (por ejemplo, traumatología y cardiología), cada una con sus propias notas.
+    \item \textbf{Expediente clínico compartido:} Toda la información del paciente (historia inicial, notas de evolución, recetas, cirugías) queda en un \textbf{expediente único}, consultable por los doctores que lo atienden, sin duplicar capturas.
+    \item \textbf{Recetas digitales:} El doctor prescribe desde el sistema como una receta normal; la receta se genera en formato digital, queda guardada en el expediente y \textbf{se envía en automático al correo del paciente}.
+    \item \textbf{Expediente quirúrgico:} Si el paciente entra a cirugía, el médico tratante llena el expediente preoperatorio dentro del sistema, con un formato estándar alineado a la \textbf{NOM-004-SSA3-2012} (expediente clínico).
+    \item \textbf{Citas postoperatorias:} Registro y seguimiento de las citas de control posteriores a la cirugía.
+    \item \textbf{Usuarios y permisos:} Tres tipos de usuario --- \textbf{Administrador} (acceso total: crea doctores y especialidades), \textbf{Doctor} (solo sus pacientes y su parte del expediente) y \textbf{Enfermería} (solo el primer llenado).
+\end{itemize}
+
+\vspace{12pt}
+
+\begin{cajaInfo}[Flujo del Sistema]
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.7cm and 0.55cm,
+    box/.style={rectangle, draw=#1, fill=#1!10, rounded corners=4pt,
+                minimum width=2.6cm, minimum height=0.9cm, font=\scriptsize, align=center, line width=0.8pt},
+    arrow/.style={-{Stealth[length=4pt]}, thick, gristexto!70}
+]
+\node[box=azulcom] (enf) {Primer llenado\\(Enfermería)};
+\node[box=grisbar, right=of enf] (asig) {Asignación\\por doctor};
+\node[box=doradocom, right=of asig] (exp) {Expediente\\y recetas};
+\node[box=grisbar, right=of exp] (cir) {Expediente\\quirúrgico};
+\node[box=verdeok, right=of cir] (post) {Citas\\postoperatorias};
+
+\draw[arrow] (enf) -- (asig);
+\draw[arrow] (asig) -- (exp);
+\draw[arrow] (exp) -- (cir);
+\draw[arrow] (cir) -- (post);
+\end{tikzpicture}
+\end{center}
+\end{cajaInfo}
+
+\vspace{14pt}
+
+% ============================================================
+% CAPTURAS DEL SISTEMA
+% ============================================================
+{\large\bfseries\color{azulcom}2. El Sistema en Pantalla}\\[4pt]
+{\color{doradocom}\rule{\linewidth}{1pt}}
+
+\vspace{8pt}
+
+\begin{cajaInfo}[Sistema construido y en línea]
+Las siguientes imágenes son \textbf{capturas reales del sistema ya desarrollado y funcionando}, con un expediente de demostración. Incluye: acceso por roles, expediente único navegable \textbf{por pasos} con avance visible, historia clínica NOM-004, recetas digitales, expediente quirúrgico con \textbf{consentimientos firmados en tableta/iPad}, y documentos con verificación de integridad (SHA-256). Los formatos oficiales de MIT (historia clínica, consentimientos, hoja de autorización quirúrgica, receta) \textbf{se generan llenos desde el sistema como PDF}.
+\end{cajaInfo}
+
+\vspace{10pt}
+
+\newcommand{\capt}[2]{%
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\fbox{\includegraphics[width=\linewidth]{capturas/#1}}\\[3pt]
+{\footnotesize\color{gristexto}#2}
+\end{minipage}}
+
+\noindent
+\capt{01-login.jpg}{Acceso seguro con usuarios y roles (bitácora de toda actividad).}\hfill
+\capt{03-expediente-pasos.jpg}{Expediente único del paciente: flujo por pasos con avance y alergias siempre visibles.}
+
+\vspace{10pt}
+
+\noindent
+\capt{04-historia-clinica.jpg}{Historia clínica de ingreso (NOM-004 6.1) con generación de PDF en formato MIT.}\hfill
+\capt{05-cirugia.jpg}{Expediente quirúrgico por pasos: nota preoperatoria, consentimientos con firma en tableta y nota postoperatoria.}
+
+\vspace{10pt}
+
+\noindent
+\capt{07-receta.jpg}{Recetas digitales con folio, PDF y envío automático al correo del paciente.}\hfill
+\capt{06-documentos.jpg}{Documentos del expediente: formatos generados y escaneos adjuntos, con huella de integridad SHA-256.}
+
+\vspace{10pt}
+
+\noindent
+\capt{08-enfermeria.jpg}{Registro de paciente por enfermería en 2 pasos (ficha de identificación y hoja clínica).}\hfill
+\capt{02-panel-admin.jpg}{Panel administrativo: indicadores, monitor de correos y bitácora de auditoría.}
+
+\vspace{14pt}
+
+% ============================================================
+% FASES DE TRABAJO
+% ============================================================
+{\large\bfseries\color{azulcom}3. Plan y Fases de Trabajo}\\[4pt]
+{\color{doradocom}\rule{\linewidth}{1pt}}
+
+\vspace{8pt}
+
+\noindent
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries\color{azulcom}}p{1.0cm} >{\bfseries}p{4.2cm} X@{}}
+\hline
+Fase 1 & Análisis y diseño & Levantamiento del formato de la hoja de primer llenado, catálogo de especialidades, formato de receta y de expediente quirúrgico. Diseño del modelo de datos y de las pantallas. \\
+\hline
+Fase 2 & Desarrollo de módulos base & Usuarios y permisos (administrador, doctor, enfermería), catálogo de doctores y especialidades, hoja de primer llenado y listado/asignación de pacientes. \\
+\hline
+Fase 3 & Expediente y recetas & Expediente clínico con notas por especialidad, recetas digitales con generación de documento y envío automático al correo del paciente. \\
+\hline
+Fase 4 & Cirugía y postoperatorio & Expediente quirúrgico y módulo de citas postoperatorias. \\
+\hline
+Fase 5 & Pruebas, capacitación y entrega & Pruebas con datos reales, ajustes, capacitación breve al personal (enfermería, doctores, administrador) y puesta en producción. \\
+\hline
+\end{tabularx}
+
+\vspace{14pt}
+
+% ============================================================
+% INVERSIÓN
+% ============================================================
+{\large\bfseries\color{azulcom}4. Inversión y Condiciones Comerciales}\\[4pt]
+{\color{doradocom}\rule{\linewidth}{1pt}}
+
+\vspace{8pt}
+
+\barraEncabezado
+
+\noindent
+\begin{tabularx}{\linewidth}{@{}X I@{}}
+\textbf{Desarrollo del Sistema CRM / Expediente Clínico:} Plataforma web completa conforme al alcance y las fases descritas en esta propuesta.\newline\newline
+\textbf{Incluye:}
+\begin{itemize}[leftmargin=14pt, itemsep=2pt, topsep=2pt]
+    \item Módulo de primer llenado para enfermería
+    \item Gestión de pacientes por especialidad
+    \item Expediente clínico único y compartido
+    \item Recetas digitales con envío automático por correo
+    \item Expediente quirúrgico y citas postoperatorias
+    \item Usuarios y permisos (administrador, doctor, enfermería)
+    \item Pruebas, capacitación y puesta en producción
+\end{itemize}
+&
+\begin{minipage}[t]{4.2cm}
+\centering
+\precioBox{20,000}{Pago único de desarrollo}
+\vspace{8pt}\par
+{\footnotesize\color{gristexto}50\% anticipo\par 50\% contra entrega}
+\end{minipage}
+\\[6pt]
+\hline
+\\[-6pt]
+\textbf{Servicio Mensual --- Operación y Mantenimiento:} Todo lo necesario para que el sistema funcione de forma continua y segura.\newline\newline
+\textbf{Incluye:}
+\begin{itemize}[leftmargin=14pt, itemsep=2pt, topsep=2pt]
+    \item Hosting del sistema y base de datos
+    \item Respaldos automáticos de la información
+    \item Envío de correos (recetas a pacientes)
+    \item Soporte técnico y corrección de fallas
+    \item Ajustes menores y actualizaciones de seguridad
+\end{itemize}
+&
+\begin{minipage}[t]{4.2cm}
+\centering
+\precioBox{4,500}{Mensualidad}
+\vspace{8pt}\par
+{\footnotesize\color{gristexto}Inicia con la puesta\par en producción}
+\end{minipage}
+\end{tabularx}
+
+\vspace{12pt}
+
+\begin{cajaTotal}
+\begin{center}
+{\Large\bfseries\color{verdeok}INVERSIÓN: \$20,000.00 MXN (única) + \$4,500.00 MXN mensuales}\\[4pt]
+{\small\color{gristexto}(Veinte mil pesos 00/100 M.N. de desarrollo \textbar{} Cuatro mil quinientos pesos 00/100 M.N. mensuales de operación)}\\[4pt]
+{\small\color{gristexto}Esquema de pago del desarrollo: 50\% de anticipo para iniciar \textbar{} 50\% contra entrega y pruebas de funcionamiento}
+\end{center}
+\end{cajaTotal}
+
+\vspace{12pt}
+
+\begin{cajaNota}
+\textbf{\color{azulcom}Nota importante sobre el alcance:} Este costo cubre los \textbf{módulos descritos en esta propuesta}. Integraciones con sistemas de terceros (facturación electrónica, laboratorio, aseguradoras), formatos clínicos adicionales a los definidos en la Fase 1, o nuevos tipos de usuario, se cotizan por separado. El sistema se construye alineado a la \textbf{NOM-004-SSA3-2012} en cuanto a la estructura del expediente clínico; la responsabilidad del contenido médico capturado y del aviso de privacidad ante los pacientes (LFPDPPP) corresponde a Medical Tower, con el acompañamiento técnico de MAW Soluciones.
+\end{cajaNota}
+
+\vspace{14pt}
+
+% ============================================================
+% NOTAS FINALES
+% ============================================================
+\begin{cajaNota}
+\textbf{\color{azulcom}Condiciones Generales}
+\begin{itemize}[leftmargin=14pt, itemsep=3pt, topsep=4pt]
+    \item Si requiere factura, los costos son más IVA (16\%).
+    \item El proyecto inicia una vez recibido el 50\% de anticipo y los formatos de referencia (hoja de enfermería, receta y catálogo de especialidades).
+    \item La mensualidad de \$4,500.00 MXN inicia a partir de la puesta en producción del sistema e incluye hosting, respaldos, envío de correos y soporte.
+    \item La información de los pacientes es propiedad del cliente y se maneja de forma confidencial; en caso de terminar el servicio mensual, se entrega un respaldo completo de la base de datos.
+    \item Vigencia de la propuesta: \textbf{30 días naturales} a partir de la fecha de emisión.
+\end{itemize}
+\end{cajaNota}
+
+\vspace{14pt}
+
+% ============================================================
+% CIERRE Y PRÓXIMOS PASOS
+% ============================================================
+{\large\bfseries\color{azulcom}Cierre y Próximos Pasos}\\[4pt]
+{\color{doradocom}\rule{\linewidth}{1pt}}
+
+\vspace{8pt}
+
+\noindent Este sistema convierte el expediente clínico en un proceso ordenado, auditable y sin papeleo disperso, listo para responder ante la autoridad. Como se muestra en la sección 2, \textbf{el sistema ya se encuentra construido y en línea con un expediente de demostración}, por lo que la puesta en marcha con datos reales puede ser inmediata. Para arrancar, basta con \textbf{aprobar esta cotización} y realizar el \textbf{50\% de anticipo}.
+
+\vspace{6pt}
+
+\noindent Quedamos atentos a sus comentarios para resolver cualquier duda y poner manos a la obra.
+
+\vspace{18pt}
+
+\begin{center}
+{\color{azulcom}\rule{7cm}{1.2pt}}\\[10pt]
+{\normalsize\bfseries Preparado para:}\\[4pt]
+{\Large\bfseries\color{azulcom}MIT --- Medical Tower}\\[10pt]
+{\normalsize\bfseries De parte de:}\\[4pt]
+{\Large\bfseries\color{azulcom}MAW Soluciones}\\[4pt]
+{\small\color{gristexto}Julio 2026}
+\end{center}
+
+\end{document}
