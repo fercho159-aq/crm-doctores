@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { crearEnfermeria, resetPassword } from "@/actions/admin";
+import { crearEnfermeria, crearAnestesiologo, resetPassword } from "@/actions/admin";
 import { Field, Input, ErrorMsg, OkMsg, Button } from "@/components/ui";
 import { SubmitButton } from "@/components/forms";
 
@@ -11,6 +11,26 @@ export function NuevaEnfermeriaForm() {
     <form action={formAction} className="space-y-3">
       <ErrorMsg>{state.error}</ErrorMsg>
       {state.ok && <OkMsg>Usuario de enfermería creado.</OkMsg>}
+      <Field label="Nombre completo" required>
+        <Input name="nombreCompleto" required />
+      </Field>
+      <Field label="Correo (login)" required>
+        <Input name="email" type="email" required />
+      </Field>
+      <Field label="Contraseña temporal" required hint="Mínimo 10 caracteres; se exige cambio al primer ingreso.">
+        <Input name="passwordTemporal" required />
+      </Field>
+      <SubmitButton className="w-full">Crear usuario</SubmitButton>
+    </form>
+  );
+}
+
+export function NuevaAnestesiologoForm() {
+  const [state, formAction] = useActionState(crearAnestesiologo, {});
+  return (
+    <form action={formAction} className="space-y-3">
+      <ErrorMsg>{state.error}</ErrorMsg>
+      {state.ok && <OkMsg>Usuario de anestesiología creado.</OkMsg>}
       <Field label="Nombre completo" required>
         <Input name="nombreCompleto" required />
       </Field>

@@ -5,5 +5,6 @@ export default async function Home() {
   const user = await requireUser();
   if (user.rol === "ADMIN") redirect("/admin");
   if (user.rol === "DOCTOR") redirect("/mi-consulta");
+  if (user.rol === "ANESTESIOLOGO") redirect("/anestesiologia");
   redirect("/enfermeria");
 }

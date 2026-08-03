@@ -16,14 +16,6 @@ const UPLOADS = process.env.UPLOADS_DIR ?? "/data/uploads";
 const ARGON2 = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 
 async function main() {
-  const existente = await prisma.paciente.findFirst({
-    where: { nombre: "María Guadalupe", apellidoPaterno: "Ejemplo" },
-  });
-  if (existente) {
-    console.log(`Paciente demo ya existe: ${existente.numeroExpediente} (${existente.id})`);
-    return;
-  }
-
   const admin = await prisma.usuario.findUniqueOrThrow({ where: { email: "admin@medicaltower.mx" } });
   const especialidad = await prisma.especialidad.findUniqueOrThrow({ where: { nombre: "Cirugía Estética" } });
   const config = await prisma.configuracion.findUniqueOrThrow({ where: { id: 1 } });
@@ -54,6 +46,43 @@ async function main() {
     });
   }
   const doctor = usuarioDoc.doctor!;
+
+  // ── Enfermería demo ──
+  await prisma.usuario.upsert({
+    where: { email: "enfermeria.demo@medicaltower.mx" },
+    update: {},
+    create: {
+      rol: "ENFERMERIA",
+      email: "enfermeria.demo@medicaltower.mx",
+      passwordHash: await hash("EnfermeriaDemo2026!", ARGON2),
+      nombreCompleto: "Enf. Laura Demo",
+      debeCambiarPassword: false,
+    },
+  });
+
+  // ── Anestesiología demo ──
+  await prisma.usuario.upsert({
+    where: { email: "anestesiologo.demo@medicaltower.mx" },
+    update: {},
+    create: {
+      rol: "ANESTESIOLOGO",
+      email: "anestesiologo.demo@medicaltower.mx",
+      passwordHash: await hash("AnestesiaDemo2026!", ARGON2),
+      nombreCompleto: "Dra. Ana Demo",
+      debeCambiarPassword: false,
+    },
+  });
+
+  const existente = await prisma.paciente.findFirst({
+    where: { nombre: "María Guadalupe", apellidoPaterno: "Ejemplo" },
+  });
+  if (existente) {
+    console.log(`Paciente demo ya existe: ${existente.numeroExpediente} (${existente.id})`);
+    console.log(`  Doctor demo: doctor.demo@medicaltower.mx / DoctorDemo2026!`);
+    console.log(`  Enfermería demo: enfermeria.demo@medicaltower.mx / EnfermeriaDemo2026!`);
+    console.log(`  Anestesiólogo demo: anestesiologo.demo@medicaltower.mx / AnestesiaDemo2026!`);
+    return;
+  }
 
   // ── Paciente ──
   const year = new Date().getFullYear();
@@ -375,6 +404,8 @@ async function main() {
   console.log(`\nRegistro demo completo:`);
   console.log(`  Paciente: María Guadalupe Ejemplo De Prueba — ${paciente.numeroExpediente} (id ${paciente.id})`);
   console.log(`  Doctor demo: doctor.demo@medicaltower.mx / DoctorDemo2026!`);
+  console.log(`  Enfermería demo: enfermeria.demo@medicaltower.mx / EnfermeriaDemo2026!`);
+  console.log(`  Anestesiólogo demo: anestesiologo.demo@medicaltower.mx / AnestesiaDemo2026!`);
   console.log(`  Receta: ${folio}`);
 }
 

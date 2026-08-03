@@ -2,9 +2,14 @@ import { requireRole } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { toggleUsuario } from "@/actions/admin";
 import { Card, CardHeader, CardBody, Badge, Button } from "@/components/ui";
-import { NuevaEnfermeriaForm, ResetPasswordForm } from "./Forms";
+import { NuevaEnfermeriaForm, NuevaAnestesiologoForm, ResetPasswordForm } from "./Forms";
 
-const ROL: Record<string, string> = { ADMIN: "Administrador", DOCTOR: "Doctor(a)", ENFERMERIA: "Enfermería" };
+const ROL: Record<string, string> = {
+  ADMIN: "Administrador",
+  DOCTOR: "Doctor(a)",
+  ENFERMERIA: "Enfermería",
+  ANESTESIOLOGO: "Anestesiólogo(a)",
+};
 
 export default async function UsuariosPage() {
   const admin = await requireRole("ADMIN");
@@ -46,12 +51,20 @@ export default async function UsuariosPage() {
             </div>
           </CardBody>
         </Card>
-        <Card>
-          <CardHeader title="Alta de enfermería" />
-          <CardBody>
-            <NuevaEnfermeriaForm />
-          </CardBody>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader title="Alta de enfermería" />
+            <CardBody>
+              <NuevaEnfermeriaForm />
+            </CardBody>
+          </Card>
+          <Card>
+            <CardHeader title="Alta de anestesiología" />
+            <CardBody>
+              <NuevaAnestesiologoForm />
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </div>
   );

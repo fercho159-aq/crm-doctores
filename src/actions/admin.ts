@@ -130,6 +130,34 @@ export async function crearEnfermeria(_p: ActionState, fd: FormData): Promise<Ac
   return { ok: true };
 }
 
+// ── Anestesiología ──────────────────────────────────────────────
+
+const anestesiologoSchema = z.object({
+  nombreCompleto: z.string().min(5, "Nombre completo requerido"),
+  email: z.string().email("Correo inválido"),
+  passwordTemporal: z.string().min(10, "Contraseña temporal: mínimo 10 caracteres"),
+});
+
+export async function crearAnestesiologo(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireRole("ADMIN");
+  const parsed = anestesiologoSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const existe = await db.usuario.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
+  if (existe) return { error: "Ya existe un usuario con ese correo" };
+  const u = await db.usuario.create({
+    data: {
+      rol: "ANESTESIOLOGO",
+      email: parsed.data.email.toLowerCase(),
+      passwordHash: await hashPassword(parsed.data.passwordTemporal),
+      nombreCompleto: parsed.data.nombreCompleto,
+      debeCambiarPassword: true,
+    },
+  });
+  await audit({ usuarioId: user.id, rol: user.rol, accion: "CREAR", entidad: "usuario", entidadId: u.id, datosDespues: { rol: "ANESTESIOLOGO", email: u.email } });
+  revalidatePath("/admin/usuarios");
+  return { ok: true };
+}
+
 // ── Usuarios: activar/desactivar, reset password ──────────────────────────────
 
 export async function toggleUsuario(usuarioId: string) {

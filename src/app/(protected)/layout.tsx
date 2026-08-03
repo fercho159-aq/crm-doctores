@@ -25,9 +25,17 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/enfermeria", label: "Inicio" },
     { href: "/enfermeria/registrar", label: "Registrar paciente" },
   ],
+  ANESTESIOLOGO: [
+    { href: "/anestesiologia", label: "Inicio" },
+  ],
 };
 
-const ROL_LABEL: Record<string, string> = { ADMIN: "Administrador", DOCTOR: "Doctor(a)", ENFERMERIA: "Enfermería" };
+const ROL_LABEL: Record<string, string> = {
+  ADMIN: "Administrador",
+  DOCTOR: "Doctor(a)",
+  ENFERMERIA: "Enfermería",
+  ANESTESIOLOGO: "Anestesiólogo(a)",
+};
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession();
