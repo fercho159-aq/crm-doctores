@@ -20,8 +20,25 @@ async function main() {
   const especialidad = await prisma.especialidad.findUniqueOrThrow({ where: { nombre: "Cirugía Estética" } });
   const config = await prisma.configuracion.findUniqueOrThrow({ where: { id: 1 } });
 
-  // ── Doctor demo ──
-  let usuarioDoc = await prisma.usuario.findUnique({ where: { email: "doctor.demo@medicaltower.mx" }, include: { doctor: true } });
+  // ── Doctor ──
+  // Si ya se sembraron los usuarios de prueba (npm run seed:usuarios), el paciente
+  // demo se asigna al doctor de Cirugía Estética de ese juego, para no manejar dos
+  // listas de credenciales. Si no existe, se crea la cuenta «doctor.demo».
+  let usuarioDoc = await prisma.usuario.findUnique({
+    where: { email: "dr.estetica.pruebas@medicaltower.mx" },
+    include: { doctor: true },
+  });
+  if (usuarioDoc?.doctor) {
+    // La asignación exige que el doctor tenga la especialidad del episodio.
+    await prisma.doctorEspecialidad.upsert({
+      where: { doctorId_especialidadId: { doctorId: usuarioDoc.doctor.id, especialidadId: especialidad.id } },
+      update: {},
+      create: { doctorId: usuarioDoc.doctor.id, especialidadId: especialidad.id },
+    });
+  }
+  if (!usuarioDoc) {
+    usuarioDoc = await prisma.usuario.findUnique({ where: { email: "doctor.demo@medicaltower.mx" }, include: { doctor: true } });
+  }
   if (!usuarioDoc) {
     usuarioDoc = await prisma.usuario.create({
       data: {
@@ -47,8 +64,12 @@ async function main() {
   }
   const doctor = usuarioDoc.doctor!;
 
-  // ── Enfermería demo ──
-  await prisma.usuario.upsert({
+  // ── Enfermería ──
+  const hayEnfPruebas = await prisma.usuario.findUnique({
+    where: { email: "enf.matutino.pruebas@medicaltower.mx" },
+    select: { id: true },
+  });
+  if (!hayEnfPruebas) await prisma.usuario.upsert({
     where: { email: "enfermeria.demo@medicaltower.mx" },
     update: {},
     create: {
@@ -60,8 +81,13 @@ async function main() {
     },
   });
 
-  // ── Anestesiología demo ──
-  await prisma.usuario.upsert({
+  // ── Anestesiología ──
+  // Lleva ficha de Doctor para que las hojas de anestesiología salgan con cédula.
+  const anestPruebas = await prisma.usuario.findUnique({
+    where: { email: "anest.uno.pruebas@medicaltower.mx" },
+    select: { id: true },
+  });
+  const usuarioAnest = anestPruebas ?? await prisma.usuario.upsert({
     where: { email: "anestesiologo.demo@medicaltower.mx" },
     update: {},
     create: {
@@ -70,6 +96,16 @@ async function main() {
       passwordHash: await hash("AnestesiaDemo2026!", ARGON2),
       nombreCompleto: "Dra. Ana Demo",
       debeCambiarPassword: false,
+      doctor: {
+        create: {
+          cedulaProfesional: "77777777",
+          cedulaEspecialidad: "66666666",
+          institucionTitulo: "IPN (DEMO)",
+          universidadEspecialidad: "UNAM (DEMO)",
+          consultorio: "Anestesiología",
+          telefono: "5528380715",
+        },
+      },
     },
   });
 
@@ -78,9 +114,8 @@ async function main() {
   });
   if (existente) {
     console.log(`Paciente demo ya existe: ${existente.numeroExpediente} (${existente.id})`);
-    console.log(`  Doctor demo: doctor.demo@medicaltower.mx / DoctorDemo2026!`);
-    console.log(`  Enfermería demo: enfermeria.demo@medicaltower.mx / EnfermeriaDemo2026!`);
-    console.log(`  Anestesiólogo demo: anestesiologo.demo@medicaltower.mx / AnestesiaDemo2026!`);
+    console.log(`  Credenciales: «npm run seed:usuarios» para las cuentas de prueba,`);
+    console.log(`  o las .demo si el registro se sembró antes de crearlas.`);
     return;
   }
 
@@ -389,6 +424,322 @@ async function main() {
     }
   }
 
+  // ── Prescripción médica de medicamentos (hoja oficial 1) ──
+  // Los renglones se escriben antes de firmar: el trigger de la base rechaza
+  // escribir en una hoja ya firmada.
+  const presc = await prisma.hojaPrescripcion.create({
+    data: {
+      pacienteId: paciente.id,
+      asignacionId: asignacion.id,
+      cuarto: "204",
+      diagnostico: "Postoperada de rinoplastia primaria",
+      dieta: "Blanda, fraccionada, abundantes líquidos",
+      elaboradaPorId: usuarioDoc.id,
+      fechaHora: new Date("2026-07-20T13:00:00-06:00"),
+    },
+  });
+  await prisma.prescripcionPartida.createMany({
+    data: [
+      { hojaId: presc.id, orden: 1, fecha: new Date("2026-07-20"), medicamento: "Clindamicina 300 mg cápsulas", dosis: "300 mg", via: "Oral", horario: "c/8 h por 7 días" },
+      { hojaId: presc.id, orden: 2, fecha: new Date("2026-07-20"), medicamento: "Paracetamol 500 mg tabletas", dosis: "500 mg", via: "Oral", horario: "c/8 h por 5 días" },
+      { hojaId: presc.id, orden: 3, fecha: new Date("2026-07-20"), medicamento: "Ketorolaco 30 mg solución inyectable", dosis: "30 mg", via: "IV", horario: "c/8 h las primeras 24 h" },
+      { hojaId: presc.id, orden: 4, fecha: new Date("2026-07-20"), medicamento: "Metoclopramida 10 mg solución inyectable", dosis: "10 mg", via: "IV", horario: "c/8 h por razón necesaria" },
+    ],
+  });
+  await prisma.hojaPrescripcion.update({
+    where: { id: presc.id },
+    data: { estado: "FIRMADA", fechaFirma: new Date("2026-07-20T13:05:00-06:00") },
+  });
+
+  // ── Hoja de órdenes médicas (hojas oficiales 9-10) ──
+  const ordenes = await prisma.hojaOrdenes.create({
+    data: {
+      pacienteId: paciente.id,
+      asignacionId: asignacion.id,
+      cuarto: "204",
+      elaboradaPorId: usuarioDoc.id,
+      fechaHora: new Date("2026-07-20T13:10:00-06:00"),
+    },
+  });
+  await prisma.ordenPartida.createMany({
+    data: [
+      { hojaId: ordenes.id, orden: 1, categoria: "DIETA", texto: "Ayuno por 6 horas; posteriormente dieta blanda fraccionada." },
+      { hojaId: ordenes.id, orden: 2, categoria: "CUIDADOS", texto: "Signos vitales cada 4 horas." },
+      { hojaId: ordenes.id, orden: 3, categoria: "CUIDADOS", texto: "Cabecera a 30°; frío local en dorso nasal 20 minutos cada 2 horas." },
+      { hojaId: ordenes.id, orden: 4, categoria: "CUIDADOS", texto: "Vigilar sangrado por taponamiento anterior; reportar si es abundante." },
+      { hojaId: ordenes.id, orden: 5, categoria: "SOLUCIONES", texto: "Solución Hartmann 1000 mL para 8 horas." },
+      { hojaId: ordenes.id, orden: 6, categoria: "MEDICAMENTOS", texto: "Ketorolaco 30 mg IV cada 8 horas." },
+      { hojaId: ordenes.id, orden: 7, categoria: "MEDICAMENTOS", texto: "Clindamicina 300 mg VO cada 8 horas (alergia a penicilina)." },
+      { hojaId: ordenes.id, orden: 8, categoria: "ESTUDIOS", texto: "Biometría hemática de control al día siguiente." },
+    ],
+  });
+  await prisma.hojaOrdenes.update({
+    where: { id: ordenes.id },
+    data: { estado: "FIRMADA", fechaFirma: new Date("2026-07-20T13:12:00-06:00") },
+  });
+
+  // ── Hoja de consumo en quirófano (hojas oficiales 11-12) ──
+  const hojaConsumo = await prisma.hojaConsumo.create({
+    data: {
+      pacienteId: paciente.id,
+      expedienteQxId: qx.id,
+      tipo: "QUIROFANO",
+      cuarto: "204",
+      procedimiento: "Rinoplastia primaria abierta",
+      fechaIngreso: new Date("2026-07-20T07:00:00-06:00"),
+      fechaEgreso: new Date("2026-07-21T11:00:00-06:00"),
+      horaIngresoQuirofano: "09:00",
+      horaTerminoQuirofano: "11:20",
+      turno: "Matutino",
+      medicoTratante: "Dr. Juan Pérez Demostración",
+      medicoCirujano: "Dr. Juan Pérez Demostración",
+      medicoAnestesiologo: "Dra. Ana Demo",
+      enfermera: "Enf. Carlos Demo",
+      instrumentista: "Enf. Laura Demo",
+      capturadoPorId: admin.id,
+    },
+  });
+  // Precios de demostración sobre el catálogo, para que la cuenta cuadre.
+  const preciosDemo: Record<string, number> = {
+    "PAQUETE DE GASAS": 45, "GUANTE 7.5": 28, "JERINGA DE 5": 6, "HOJA DE BISTURÍ": 18,
+    "ISODINE": 120, "MICROPORE": 35, "EQUIPO DE VENOCLISIS": 65,
+    "PROPOFOL": 180, "FENTANIL": 210, "KETOROLACO": 42, "DEXAMETAXONA": 38,
+    "LIDOCAINA CON APINEFRINA": 55, "BROMURO DE RONCURONIO": 165,
+    "NYLON O DERMALON 3-0": 190, "CAT GUT 2/0": 145,
+    "SOLUCIÓN HARTMANN 1000 ml.": 85,
+    "LABORATORIO": 1450, "DERECHO DE SALA": 8500, "HONORARIOS MÉDICOS": 45000,
+    "MATERIALES Y MEDICAMENTOS": 4200, "ESTANCIA": 3200, "OXÍGENO": 450,
+    "MEDICINA ESPECIALIZADA": 6500,
+  };
+  const consumidoDemo: Record<string, number> = {
+    "PAQUETE DE GASAS": 6, "GUANTE 7.5": 4, "JERINGA DE 5": 8, "HOJA DE BISTURÍ": 2,
+    "ISODINE": 1, "MICROPORE": 2, "EQUIPO DE VENOCLISIS": 1,
+    "PROPOFOL": 2, "FENTANIL": 1, "KETOROLACO": 3, "DEXAMETAXONA": 1,
+    "LIDOCAINA CON APINEFRINA": 2, "BROMURO DE RONCURONIO": 1,
+    "NYLON O DERMALON 3-0": 2, "CAT GUT 2/0": 1,
+    "SOLUCIÓN HARTMANN 1000 ml.": 2,
+    "LABORATORIO": 1, "DERECHO DE SALA": 1, "HONORARIOS MÉDICOS": 1,
+    "MATERIALES Y MEDICAMENTOS": 1, "ESTANCIA": 1, "OXÍGENO": 1,
+    "MEDICINA ESPECIALIZADA": 1,
+  };
+  let ordenConsumo = 0;
+  for (const [nombre, precio] of Object.entries(preciosDemo)) {
+    const insumo = await prisma.insumo.findFirst({ where: { nombre } });
+    if (!insumo) continue;
+    await prisma.insumo.update({ where: { id: insumo.id }, data: { precio } });
+    const cantidad = consumidoDemo[nombre] ?? 0;
+    if (cantidad === 0) continue;
+    ordenConsumo += 1;
+    await prisma.consumoPartida.create({
+      data: {
+        hojaId: hojaConsumo.id,
+        insumoId: insumo.id,
+        descripcion: insumo.nombre,
+        categoria: insumo.categoria,
+        cantidad,
+        precioUnitario: precio,
+        importe: cantidad * precio,
+        orden: ordenConsumo,
+      },
+    });
+  }
+
+  // ── Valoración preanestésica (hojas oficiales 15-16) ──
+  await prisma.valoracionPreanestesica.create({
+    data: {
+      expedienteQxId: qx.id,
+      pacienteId: paciente.id,
+      anestesiologoId: usuarioAnest.id,
+      habitacion: "204",
+      servicio: "Cirugía Estética",
+      folio: "VP-2026-0001",
+      tipoPago: "PARTICULAR",
+      fechaIngreso: new Date("2026-07-20T07:00:00-06:00"),
+      horaIngreso: "07:00",
+      diagnosticoPrequirurgico: "Deformidad estética nasal (giba dorsal y punta bulbosa)",
+      cirugiaPlaneada: "Rinoplastia primaria abierta",
+      cirujano: "Dr. Juan Pérez Demostración",
+      anestesiologo: "Dra. Ana Demo",
+      tipoCirugia: ["Mayor", "Electiva"],
+      antecedentesImportancia:
+        "Alergia a PENICILINA (rash cutáneo). Cesárea en 2019 bajo bloqueo peridural sin complicaciones. Niega crónicos, tabaquismo y toxicomanías.",
+      pesoKg: 62.5,
+      tallaCm: 163,
+      imc: 23.52,
+      temperatura: 36.4,
+      ta: "118/76",
+      fr: 16,
+      fc: 72,
+      spo2: 98,
+      exCabeza: "Normocéfala, sin lesiones. Deformidad nasal estética.",
+      exCuello: "Cilíndrico, móvil, sin adenomegalias.",
+      exRespiratorio: "Murmullo vesicular presente en ambos campos, sin agregados.",
+      exCardiovascular: "Ruidos cardiacos rítmicos, sin soplos.",
+      exGastrointestinal: "Abdomen blando, depresible, no doloroso.",
+      exGenitourinario: "Sin alteraciones.",
+      labFecha: new Date("2026-07-17"),
+      grupoSanguineo: "O",
+      factorRh: "Positivo",
+      hemoglobina: "13.8",
+      hematocrito: "41",
+      plaquetas: "268,000",
+      leucocitos: "6,900",
+      tp: "11.8",
+      tpt: "27",
+      tt: "15",
+      glucosa: "88",
+      creatinina: "0.7",
+      urea: "24",
+      sodio: "139",
+      potasio: "4.2",
+      cloro: "103",
+      calcio: "9.4",
+      ecg: "Ritmo sinusal, sin datos de isquemia.",
+      rayosX: "Tórax sin alteraciones pleuropulmonares.",
+      factoresRiesgo: { marcadas: ["Alergias", "Anestesias previas"], especificar: "Penicilina (rash). Bloqueo peridural en cesárea 2019, sin complicaciones." },
+      asa: "I",
+      goldman: [],
+      predictores: { menores: [], intermedios: [], mayores: [] },
+      trombolitico: { menores: ["sexoF", "cxMenor3h"], intermedios: [], mayores: [] },
+      neurologico: { pupilas: ["Normal"], ojos: 4, motor: 6, verbal: 5 },
+      viaAerea: {
+        ventilacionDificil: [],
+        mallampati: "Clase I",
+        apertura: "Grado 1: ≥ 5 cm",
+        tiromentoniana: "> 6.5 cm — fácil",
+        subluxacion: "> 0 — los incisivos inferiores se colocan por delante de los superiores",
+        extension: "> 100°",
+      },
+      planAnestesico: ["A.G.B."],
+      fechaElaboracion: new Date("2026-07-20T07:30:00-06:00"),
+      estado: "FIRMADA",
+      fechaFirma: new Date("2026-07-20T07:35:00-06:00"),
+    },
+  });
+
+  // ── Registro anestésico y transanestésico (hojas oficiales 17, 18 y 20) ──
+  const registro = await prisma.registroAnestesico.create({
+    data: {
+      expedienteQxId: qx.id,
+      pacienteId: paciente.id,
+      anestesiologoId: usuarioAnest.id,
+      evalFecha: new Date("2026-07-20T08:45:00-06:00"),
+      evalHora: "08:45",
+      consentimientoAnestesia: true,
+      identificacionCorroborada: true,
+      verificacionEquipo: [
+        "Aparato de anestesia", "Circuito", "Fugas", "Cal sodada", "Ventilador",
+        "Parámetros ventilatorios", "Flujómetros", "Vaporizadores", "Fuente de O2 y alarmas",
+        "Fuente de energía y alarmas", "ECG", "PANI", "SpO2", "CO2FE", "Bomba de infusión",
+      ],
+      signosBasales: { ta: "118/76", fc: "72", fr: "16", temp: "36.4", spo2: "98" },
+      medicacionPreanestesica: [
+        { medicamento: "Midazolam", dosis: "2 mg", via: "IV", fecha: "20/07/26", hora: "08:50", efecto: "Ansiólisis adecuada" },
+      ],
+      evalObservaciones: "Paciente en ayuno de 8 horas, tranquila, vía aérea sin datos de dificultad prevista.",
+      horasAyuno: "8 h",
+      premedicacion: true,
+      premedicacionDetalle: "Midazolam 2 mg IV",
+      accesoVenoso: true,
+      accesoSitio: "Dorso de mano izquierda",
+      calibreCateter: "20 G",
+      posicionPaciente: "Supinación",
+      posicionBrazos: "Aducción",
+      proteccionOjos: true,
+      proteccionProminencias: true,
+      torniquete: false,
+      tecnicaAnestesica: "General",
+      anestesiaGeneral: {
+        induccion: "Intravenosa",
+        medicamento: "Propofol 130 mg, fentanil 200 µg, rocuronio 35 mg",
+        intubacion: "Oral",
+        canula: "7.0 mm",
+        globo: "Presión normal",
+        traumatica: "No",
+        ventilacion: "Mecánica controlada",
+        volumenCorriente: "420 mL",
+        frecuencia: "12 rpm",
+        presionVias: "17 cmH2O",
+        flujos: "O2 2 L/min · aire 2 L/min",
+        peep: "5",
+        circuito: "Circular semicerrado",
+      },
+      agentes: "Sevoflurano 2% · O2/aire",
+      tiempos: {
+        ingreso: "09:00", inicioAnestesia: "09:05", inicioCirugia: "09:20",
+        finalCirugia: "11:10", finalAnestesia: "11:20", recuperacion: "11:25",
+      },
+      tipoVentilacion: "Controlada",
+      egresos: { perdidasInsensibles: "180", ayuno: "500", exposicionQuirurgica: "120", diuresis: "300", sangrado: "50", otros: "0", total: "1150" },
+      ingresos: { cristaloides: "1400", coloides: "0", sangre: "0", plasma: "0", otros: "0", total: "1400" },
+      balanceHidrico: "+250 mL",
+      aldreteFinal: 9,
+      pasaA: "Recuperación",
+    },
+  });
+  // Cuadrícula de signos vitales cada 10 minutos: es lo que grafica el PDF.
+  const lecturasDemo = Array.from({ length: 14 }, (_, i) => {
+    const minuto = i * 10;
+    const t = i / 3;
+    return {
+      registroId: registro.id,
+      minuto,
+      hora: `${String(9 + Math.floor((0 + minuto) / 60)).padStart(2, "0")}:${String(minuto % 60).padStart(2, "0")}`,
+      taSistolica: 116 + Math.round(10 * Math.sin(t)),
+      taDiastolica: 74 + Math.round(6 * Math.sin(t + 0.4)),
+      fc: 70 + Math.round(9 * Math.sin(t + 0.8)),
+      fr: 13 + (i % 3),
+      spo2: 97 + (i % 3),
+      etco2: String(33 + (i % 3)),
+      pvcPam: String(86 + (i % 4)),
+      bis: String(42 + (i % 5)),
+    };
+  });
+  await prisma.transanestesicoLectura.createMany({ data: lecturasDemo });
+  await prisma.transanestesicoFarmaco.createMany({
+    data: [
+      { registroId: registro.id, orden: 1, nombre: "Propofol", dosis: "130 mg", via: "IV" },
+      { registroId: registro.id, orden: 2, nombre: "Fentanil", dosis: "200 µg", via: "IV" },
+      { registroId: registro.id, orden: 3, nombre: "Rocuronio", dosis: "35 mg", via: "IV" },
+      { registroId: registro.id, orden: 4, nombre: "Dexametasona", dosis: "8 mg", via: "IV" },
+      { registroId: registro.id, orden: 5, nombre: "Ketorolaco", dosis: "30 mg", via: "IV" },
+      { registroId: registro.id, orden: 6, nombre: "Ondansetrón", dosis: "4 mg", via: "IV" },
+    ],
+  });
+  await prisma.registroAnestesico.update({
+    where: { id: registro.id },
+    data: { estado: "FIRMADA", fechaFirma: new Date("2026-07-20T11:30:00-06:00") },
+  });
+
+  // ── Nota post-anestésica (hoja oficial 19) ──
+  await prisma.notaPostanestesica.create({
+    data: {
+      expedienteQxId: qx.id,
+      pacienteId: paciente.id,
+      anestesiologoId: usuarioAnest.id,
+      aldrete: {
+        "0": { actividad: 1, respiracion: 2, circulacion: 2, conciencia: 1, saturacion: 1 },
+        "5": { actividad: 2, respiracion: 2, circulacion: 2, conciencia: 2, saturacion: 1 },
+        "10": { actividad: 2, respiracion: 2, circulacion: 2, conciencia: 2, saturacion: 2 },
+        "20": { actividad: 2, respiracion: 2, circulacion: 2, conciencia: 2, saturacion: 2 },
+      },
+      ramsay: 2,
+      bromage: 0,
+      nota:
+        "Paciente egresa de quirófano bajo efecto residual de anestesia general balanceada, extubada en sala, con ventilación espontánea y mecánica ventilatoria adecuada. Hemodinámicamente estable. Aldrete 10 a los 10 minutos de vigilancia. Sin náusea ni vómito. Dolor 2/10 en escala visual análoga. Taponamiento nasal anterior sin sangrado activo.",
+      planOxigeno: "Puntas nasales 3 L/min durante 2 horas",
+      planSolucionesIV: "Solución Hartmann 1000 mL para 8 horas",
+      planMedicamentos: "Ketorolaco 30 mg IV c/8 h · Ondansetrón 4 mg IV c/8 h por razón necesaria",
+      planComponentesSanguineos: "No requiere",
+      planManejoDolor: "Analgesia multimodal; rescate con nalbufina 5 mg IV si EVA mayor a 6",
+      motivoEgreso: "Aldrete 10, estable, sin dolor significativo ni sangrado",
+      pasaA: "Habitación",
+      fechaHora: new Date("2026-07-20T11:45:00-06:00"),
+      estado: "FIRMADA",
+      fechaFirma: new Date("2026-07-20T11:50:00-06:00"),
+    },
+  });
+
   await prisma.bitacora.create({
     data: {
       usuarioId: admin.id,
@@ -401,12 +752,22 @@ async function main() {
     },
   });
 
+  const anestFinal = await prisma.usuario.findUniqueOrThrow({
+    where: { id: usuarioAnest.id },
+    select: { email: true },
+  });
   console.log(`\nRegistro demo completo:`);
   console.log(`  Paciente: María Guadalupe Ejemplo De Prueba — ${paciente.numeroExpediente} (id ${paciente.id})`);
-  console.log(`  Doctor demo: doctor.demo@medicaltower.mx / DoctorDemo2026!`);
-  console.log(`  Enfermería demo: enfermeria.demo@medicaltower.mx / EnfermeriaDemo2026!`);
-  console.log(`  Anestesiólogo demo: anestesiologo.demo@medicaltower.mx / AnestesiaDemo2026!`);
+  console.log(`  Médico tratante del expediente: ${usuarioDoc.email}`);
+  console.log(`  Anestesiólogo de la cirugía:    ${anestFinal.email}`);
+  if (usuarioDoc.email === "doctor.demo@medicaltower.mx") {
+    console.log(`  Contraseñas .demo: DoctorDemo2026! / EnfermeriaDemo2026! / AnestesiaDemo2026!`);
+    console.log(`  (Con «npm run seed:usuarios» el paciente se asigna a las cuentas de prueba.)`);
+  } else {
+    console.log(`  Contraseña de las cuentas de prueba: ver «npm run seed:usuarios».`);
+  }
   console.log(`  Receta: ${folio}`);
+  console.log(`  Prescripción, órdenes médicas, consumo de quirófano y las 3 hojas de anestesiología: cargadas`);
 }
 
 main().finally(() => prisma.$disconnect());
