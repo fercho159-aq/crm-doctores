@@ -1,0 +1,839 @@
+% !TEX program = xelatex
+\documentclass[11pt,letterpaper]{article}
+
+% ============================================================
+% PAQUETES
+% ============================================================
+\usepackage[spanish,es-tabla,es-noindentfirst]{babel}
+\usepackage{fontspec}
+\usepackage{amssymb}
+% La fuente se carga con fontspec, no con \usepackage{montserrat}: ese paquete
+% usa codificación OT1 y ahí «¿» se imprime como «£».
+\setsansfont{Montserrat}[
+    UprightFont     = *-Regular,
+    BoldFont        = *-Bold,
+    ItalicFont      = *-Italic,
+    BoldItalicFont  = *-BoldItalic,
+    Extension       = .otf ]
+\setmonofont{Menlo}[Scale=0.85]
+\renewcommand*\familydefault{\sfdefault}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+
+\geometry{top=2.4cm, bottom=2cm, left=2cm, right=2cm}
+\setlength{\headheight}{34pt}
+\addtolength{\topmargin}{-12pt}
+
+% ============================================================
+% COLORES --- identidad MIT Medical Tower
+% ============================================================
+\definecolor{azulmit}{HTML}{1D4ED8}
+\definecolor{azuloscuro}{HTML}{1E40AF}
+\definecolor{tinta}{HTML}{16202E}
+\definecolor{grisfondo}{HTML}{F4F6FA}
+\definecolor{gristexto}{HTML}{5B6472}
+\definecolor{cielo}{HTML}{E4ECFB}
+\definecolor{tealmit}{HTML}{2AA8A0}
+\definecolor{verdeok}{HTML}{047857}
+\definecolor{ambar}{HTML}{B45309}
+\definecolor{rojoalerta}{HTML}{C0392B}
+
+\hypersetup{colorlinks=true, linkcolor=azuloscuro, urlcolor=azuloscuro}
+
+% ============================================================
+% MARCA (el sistema no tiene archivo de logotipo: se dibuja igual que en pantalla)
+% ============================================================
+\newcommand{\marcaMIT}[1]{%
+    \begin{tikzpicture}[baseline]
+        \node[fill=azulmit, rounded corners=#1*0.28, minimum width=#1, minimum height=#1,
+              inner sep=0pt, text=white, font=\bfseries\fontsize{#1*0.6}{#1*0.6}\selectfont] {M};
+    \end{tikzpicture}%
+}
+
+% ============================================================
+% ENCABEZADO / PIE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\raisebox{-4pt}{\marcaMIT{16pt}}\hspace{5pt}\footnotesize\color{gristexto}\textbf{MIT --- Medical Tower}}
+\fancyhead[R]{\footnotesize\color{gristexto}Manual de uso --- Expediente Clínico Electrónico}
+\fancyfoot[C]{\footnotesize\color{gristexto}\thepage}
+\renewcommand{\headrulewidth}{0.6pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{azulmit}\leaders\hrule height \headrulewidth\hfill}}
+
+% ============================================================
+% COMANDOS / CAJAS
+% ============================================================
+\newcommand{\seccion}[1]{%
+    \vspace{4pt}
+    \noindent{\large\bfseries\color{tinta}#1}\par\vspace{2pt}
+    % Sin \noindent la regla arranca después de la sangría y desborda el margen.
+    \noindent{\color{azulmit}\rule{\linewidth}{1.2pt}}\par
+    \vspace{6pt}
+}
+
+\newcommand{\subseccion}[1]{%
+    \vspace{8pt}
+    \noindent{\bfseries\color{azuloscuro}#1}\par
+    \vspace{3pt}
+}
+
+\newtcolorbox{cajaNota}{
+    colback=grisfondo, colframe=gristexto!50, rounded corners,
+    boxrule=1pt, left=10pt, right=10pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaOjo}{
+    colback=rojoalerta!7, colframe=rojoalerta, rounded corners,
+    boxrule=1.2pt, left=10pt, right=10pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaInfo}[1][]{
+    colback=grisfondo, colframe=tinta, fonttitle=\bfseries\color{white},
+    colbacktitle=tinta, title={#1}, rounded corners,
+    boxrule=1pt, left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaRol}[1][]{
+    colback=cielo!55, colframe=azulmit, fonttitle=\bfseries\color{white},
+    colbacktitle=azulmit, title={#1}, rounded corners,
+    boxrule=1pt, left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\setlist[itemize]{leftmargin=16pt, itemsep=3pt, topsep=3pt}
+\setlist[enumerate]{leftmargin=20pt, itemsep=5pt, topsep=4pt}
+\renewcommand{\arraystretch}{1.3}
+
+\newcommand{\cd}[1]{{\ttfamily\small #1}}
+\newcommand{\boton}[1]{{\bfseries\color{azuloscuro}[#1]}}
+\newcommand{\hoja}[1]{{\footnotesize\color{gristexto}(hoja oficial #1)}}
+
+% Captura de pantalla con marco y pie
+% El \fbox suma su regla y separación al ancho: se descuentan para no desbordar.
+\newlength{\anchoCaptura}
+\setlength{\anchoCaptura}{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}
+\newcommand{\captura}[2]{%
+    \begin{center}
+    \fbox{\includegraphics[width=0.86\anchoCaptura]{capturas/#1}}\\[3pt]
+    {\footnotesize\color{gristexto}#2}
+    \end{center}
+}
+\newcommand{\capturaAncha}[2]{%
+    \begin{center}
+    \fbox{\includegraphics[width=\anchoCaptura]{capturas/#1}}\\[3pt]
+    {\footnotesize\color{gristexto}#2}
+    \end{center}
+}
+
+% ============================================================
+% ESTILOS DE DIAGRAMA
+% ============================================================
+\tikzset{
+    paso/.style={
+        draw=tinta, fill=white, rounded corners=3pt, line width=0.9pt,
+        text=tinta, font=\sffamily\small, align=center,
+        minimum height=30pt, minimum width=120pt, inner sep=5pt },
+    pasoazul/.style={
+        draw=azulmit, fill=azulmit, rounded corners=3pt, line width=0.9pt,
+        text=white, font=\sffamily\bfseries\small, align=center,
+        minimum height=30pt, minimum width=120pt, inner sep=5pt },
+    pasogris/.style={
+        draw=gristexto, fill=grisfondo, rounded corners=3pt, line width=0.9pt,
+        text=tinta, font=\sffamily\small, align=center,
+        minimum height=30pt, minimum width=120pt, inner sep=5pt },
+    rombo/.style={
+        draw=azulmit, fill=azulmit!10, diamond, aspect=2.4, line width=0.9pt,
+        text=tinta, font=\sffamily\footnotesize, align=center, inner sep=2pt },
+    quien/.style={ font=\sffamily\scriptsize\bfseries, text=gristexto },
+    flecha/.style={-{Stealth[length=5pt]}, line width=0.9pt, draw=gristexto},
+    flechaa/.style={-{Stealth[length=5pt]}, line width=0.9pt, draw=azulmit},
+}
+
+% ============================================================
+\begin{document}
+
+% ---- PORTADA ----
+\begin{center}
+    \marcaMIT{54pt}\\[12pt]
+    {\LARGE\bfseries\color{tinta}MANUAL DE USO}\\[6pt]
+    {\normalsize\color{gristexto}Expediente Clínico Electrónico --- los 20 formatos del expediente, en el sistema}\\[2pt]
+    {\normalsize\color{gristexto}MIT --- Medical Tower}\\[8pt]
+    {\footnotesize\color{gristexto}Dirigido a enfermería, médicos tratantes, anestesiología y administración}\\[2pt]
+    {\footnotesize\color{gristexto}Versión 1.0 \quad$\cdot$\quad Agosto 2026}\\[8pt]
+    {\color{azulmit}\rule{0.5\linewidth}{1.6pt}}
+\end{center}
+
+\vspace{10pt}
+
+\noindent Este manual explica, paso a paso y con imágenes reales del sistema, cómo se lleva el expediente clínico de MIT --- Medical Tower. \textbf{No necesitas conocimientos técnicos.} Está escrito para que cualquier persona del equipo pueda usarlo con confianza desde el primer día.
+
+\vspace{6pt}
+
+\begin{cajaOjo}
+\textbf{El sistema no cambia tus formatos: digitaliza los que ya usas.} Cada hoja que hoy se llena en papel --- ficha de identificación, prescripción, órdenes médicas, historia clínica, consentimientos, hojas de consumo y las hojas de anestesiología --- sale del sistema con la misma estructura, en PDF, con el encabezado y la licencia sanitaria del establecimiento.
+
+\vspace{4pt}
+\textbf{Lo que firmas, queda firmado.} Una hoja firmada ya no se puede editar: ni tú, ni el administrador, ni quien tenga acceso a la base de datos. Así lo pide la NOM-004-SSA3-2012 y así está construido el sistema.
+\end{cajaOjo}
+
+\vspace{8pt}
+
+\noindent\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth} X@{}}
+\toprule
+\textbf{Dirección del sistema} & La que le indique administración (el sistema corre en el servidor de la clínica). \\
+\textbf{Desde dónde se usa} & Cualquier navegador: computadora, tableta o celular. En quirófano y recuperación conviene tableta, porque las firmas del paciente se capturan en pantalla. \\
+\textbf{Quiénes lo usan} & Enfermería, médicos tratantes, anestesiología y administración. Cada rol ve solo lo que le toca. \\
+\bottomrule
+\end{tabularx}
+
+% ============================================================
+\newpage
+\seccion{1. Qué hace el sistema, en una página}
+
+\noindent El sistema lleva el expediente clínico completo de cada paciente: desde que enfermería lo registra hasta que se cierra la cuenta de la cirugía. Cada paso genera el formato oficial que corresponde, con las firmas que la norma exige.
+
+\vspace{8pt}
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=1cm]
+    \node[paso]     (r)  at (0, 0)     {1. Registro del paciente\\[-2pt]\scriptsize ficha + hoja de primer llenado};
+    \node[rombo]    (a)  at (0, -1.9)  {¿Ya tiene\\médico?};
+    \node[paso]     (c)  at (0, -3.8)  {2. Consulta\\[-2pt]\scriptsize historia clínica y notas};
+    \node[paso]     (p)  at (0, -5.7)  {3. Tratamiento\\[-2pt]\scriptsize receta, prescripción, órdenes};
+    \node[rombo]    (q)  at (0, -7.6)  {¿Requiere\\cirugía?};
+    \node[paso]     (k)  at (0, -9.5)  {4. Cirugía\\[-2pt]\scriptsize consentimientos y notas};
+    \node[paso]     (an) at (0, -11.4) {5. Anestesiología\\[-2pt]\scriptsize valoración, registro, recuperación};
+    \node[pasoazul] (cu) at (0, -13.3) {6. Cuenta y expediente};
+
+    \node[pasogris, minimum width=100pt] (dis) at (5.4, -1.9)  {Queda disponible\\[-2pt]\scriptsize el doctor lo toma};
+    \node[pasogris, minimum width=100pt] (alt) at (5.4, -7.6)  {Alta de la especialidad\\[-2pt]\scriptsize con motivo};
+
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, 0)      {ENFERMERÍA};
+    \node[quien, anchor=east] at (-2.6, -1.9)   {SISTEMA};
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, -3.8)   {MÉDICO};
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, -5.7)   {MÉDICO};
+    \node[quien, anchor=east] at (-2.6, -7.6)   {MÉDICO};
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, -9.5)   {CIRUJANO};
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, -11.4)  {ANESTESIÓLOGO};
+    \node[quien, anchor=east, text=azuloscuro] at (-2.6, -13.3)  {ENFERMERÍA + ADMÓN.};
+
+    \draw[flecha] (r) -- (a);
+    \draw[flecha] (a) -- node[right, font=\scriptsize\sffamily, text=gristexto] {sí} (c);
+    \draw[flecha] (c) -- (p);
+    \draw[flecha] (p) -- (q);
+    \draw[flecha] (q) -- node[right, font=\scriptsize\sffamily, text=gristexto] {sí} (k);
+    \draw[flecha] (k) -- (an);
+    \draw[flecha] (an) -- (cu);
+
+    \draw[flechaa] (a) -- node[above, font=\scriptsize\sffamily, text=azulmit] {no} (dis);
+    \draw[flechaa] (dis) to[out=-90,in=90] (c.north east);
+    \draw[flechaa] (q) -- node[above, font=\scriptsize\sffamily, text=azulmit] {no} (alt);
+\end{tikzpicture}
+\end{center}
+
+\vspace{4pt}
+\begin{cajaNota}
+\textbf{Un paciente, un expediente.} Aunque lo atiendan varios especialistas, el expediente es uno solo: cada especialidad abre su propio episodio de atención dentro del mismo expediente, con su propio ciclo de vida (activo, alta, referido).
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{2. Quién hace qué}
+
+\begin{cajaRol}[Enfermería]
+Registra al paciente nuevo (ficha de identificación) y llena la \textbf{hoja de primer llenado}: antecedentes, padecimiento actual y signos vitales. Al cerrarla, el paciente queda \textbf{disponible} para que un doctor lo tome. También captura las \textbf{hojas de consumo} (piezas usadas en quirófano y en piso). No entra al expediente clínico ni a las notas.
+\end{cajaRol}
+
+\vspace{6pt}
+\begin{cajaRol}[Médico tratante]
+Ve \textbf{únicamente los pacientes que tiene asignados}. Escribe la historia clínica, las notas de evolución, las recetas, la prescripción intrahospitalaria y las órdenes médicas. Abre el expediente quirúrgico, recaba consentimientos con firma en tableta y da el alta de su especialidad.
+\end{cajaRol}
+
+\vspace{6pt}
+\begin{cajaRol}[Anestesiólogo]
+Ve la lista de \textbf{cirugías programadas} y captura sus tres hojas: valoración preanestésica (con ASA, Goldman, riesgo trombolítico y vía aérea difícil), registro anestésico y transanestésico, y la nota post-anestésica con Aldrete, Ramsay y Bromage. No entra al resto del expediente.
+\end{cajaRol}
+
+\vspace{6pt}
+\begin{cajaRol}[Administración]
+Ve \textbf{todo, en lectura}: pacientes, expedientes y bitácora. Administra usuarios, doctores, especialidades, el \textbf{catálogo de insumos con sus precios} y la configuración del establecimiento. Es el único rol que puede \textbf{cerrar una hoja de consumo} (fijar la cuenta). No escribe en el expediente clínico.
+\end{cajaRol}
+
+\vspace{8pt}
+\begin{cajaInfo}[Qué pantalla ve cada rol]
+\noindent\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.34\linewidth} >{\centering\arraybackslash}p{0.15\linewidth} >{\centering\arraybackslash}p{0.13\linewidth} >{\centering\arraybackslash}p{0.16\linewidth} >{\centering\arraybackslash}X@{}}
+\textbf{Pantalla} & \textbf{Enfermería} & \textbf{Médico} & \textbf{Anestesiól.} & \textbf{Admón.} \\
+\midrule
+Registrar paciente & \checkmark & --- & --- & --- \\
+Hoja de primer llenado & \checkmark & lectura & --- & lectura \\
+Mi consulta & --- & \checkmark & --- & --- \\
+Expediente por pasos & --- & \checkmark & --- & lectura \\
+Historia clínica & --- & \checkmark & --- & lectura \\
+Consulta y notas & --- & \checkmark & --- & lectura \\
+Receta & --- & \checkmark & --- & lectura \\
+Prescripción & --- & \checkmark & --- & lectura \\
+Órdenes médicas & --- & \checkmark & --- & lectura \\
+Cirugía & --- & \checkmark & --- & lectura \\
+Anestesiología & --- & --- & \checkmark & lectura \\
+Hojas de consumo & \checkmark & \checkmark & --- & \checkmark \ (cierra) \\
+Documentos & --- & \checkmark & --- & lectura \\
+Insumos y precios & --- & --- & --- & \checkmark \\
+Usuarios y doctores & --- & --- & --- & \checkmark \\
+Bitácora & --- & --- & --- & \checkmark \\
+Configuración & --- & --- & --- & \checkmark \\
+\end{tabularx}
+\end{cajaInfo}
+
+\vspace{10pt}
+\subseccion{Cómo entrar al sistema}
+
+\noindent Abre la dirección del sistema en cualquier navegador, escribe tu correo y tu contraseña, y presiona \boton{Iniciar sesión}.
+
+\capturaAncha{login}{Pantalla de acceso. Toda actividad queda registrada en bitácora: quién entró, cuándo y qué expediente abrió.}
+
+\begin{cajaNota}
+El sistema te lleva automáticamente a la pantalla que te corresponde según tu rol. Para salir, usa \boton{Cerrar sesión} arriba a la derecha. Por seguridad, la sesión se cierra sola después de 15 minutos sin actividad.
+\end{cajaNota}
+
+\subseccion{La primera vez que entras}
+
+\noindent Con tu contraseña inicial el sistema te obliga a cambiarla antes de dejarte pasar. La nueva debe tener al menos 10 caracteres, con mayúscula, minúscula y número.
+
+\captura{cambiar-password}{Cambio de contraseña obligatorio en el primer acceso.}
+
+% ============================================================
+\newpage
+\seccion{3. Enfermería --- registro y primer llenado}
+
+\noindent Es la puerta de entrada del paciente al sistema. Enfermería registra los datos y los signos vitales; el doctor recibe el expediente ya preparado.
+
+\capturaAncha{enfermeria-inicio}{Inicio de enfermería. Antes de registrar, \textbf{siempre} busque al paciente por nombre, CURP, teléfono o expediente: así se evitan expedientes duplicados.}
+
+\subseccion{3.1 Registrar un paciente nuevo}
+
+\noindent Con \boton{Registrar nuevo paciente} se abre un formulario de dos pasos. El paso 1 es la ficha de identificación; el paso 2 es la hoja clínica con signos vitales.
+
+\capturaAncha{enfermeria-registrar}{Paso 1 --- ficha de identificación. Los campos con asterisco rojo son obligatorios.}
+
+\begin{cajaInfo}[Qué se captura en cada paso]
+\begin{itemize}
+    \item \textbf{Paso 1 --- Ficha de identificación:} nombre completo, fecha de nacimiento, sexo, CURP, tipo de sangre, estado civil, ocupación, escolaridad, domicilio, teléfono, correo y contacto de emergencia.
+    \item \textbf{Paso 2 --- Hoja clínica:} motivo de consulta, padecimiento actual, antecedentes (heredofamiliares, patológicos, no patológicos y gineco-obstétricos), \textbf{alergias}, medicamentos actuales, interrogatorio por aparatos y signos vitales.
+\end{itemize}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+\textbf{El campo de alergias nunca se deja vacío.} Si el paciente no refiere alergias, se escribe \cd{NINGUNA CONOCIDA}. Lo que se capture aquí aparece en \textbf{rojo, en la parte de arriba del expediente}, en todas las pantallas y para todo el equipo. Es la primera cosa que ve un médico antes de prescribir.
+\end{cajaOjo}
+
+\subseccion{3.2 Cerrar la hoja}
+
+\noindent Mientras la hoja está en \textbf{borrador} se puede corregir. Al \textbf{cerrarla}, dos cosas pasan: el paciente queda disponible para consulta, y la hoja se vuelve inmutable.
+
+\capturaAncha{enfermeria-hoja}{Hoja de primer llenado ya cerrada: se muestra en solo lectura.}
+
+\begin{cajaNota}
+\textbf{¿Y si me equivoqué después de cerrar?} No se corrige encima: se captura una \textbf{versión nueva} de la hoja. La versión anterior se conserva íntegra, porque es parte del expediente legal. Así lo exige la NOM-004.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{4. El expediente por pasos}
+
+\noindent Cuando un doctor abre un expediente, el sistema le muestra el flujo clínico como una barra de pasos. El paso con número azul es donde estás; los pasos con visto verde ya están cubiertos.
+
+\capturaAncha{expediente-resumen}{Encabezado fijo del expediente (nombre, edad, sexo, alergias en rojo), la barra de pasos y el resumen del episodio de atención.}
+
+\begin{cajaInfo}[Los pasos del expediente]
+\begin{enumerate}
+    \item \textbf{Resumen} --- episodios de atención, actividad y acciones rápidas.
+    \item \textbf{Historia clínica} --- la hoja de primer llenado y su PDF.
+    \item \textbf{Consulta y notas} --- notas de evolución en formato SOAP.
+    \item \textbf{Receta} \emph{(opcional)} --- prescripción ambulatoria con folio y envío por correo.
+    \item \textbf{Prescripción} \emph{(opcional)} --- hoja de medicamentos del paciente hospitalizado.
+    \item \textbf{Órdenes médicas} \emph{(opcional)} --- indicaciones del día para enfermería.
+    \item \textbf{Cirugía} \emph{(opcional)} --- expediente quirúrgico completo.
+    \item \textbf{Consumo} \emph{(opcional)} --- insumos cobrables de quirófano y de piso.
+    \item \textbf{Documentos} --- todos los PDF generados y los escaneos adjuntos.
+\end{enumerate}
+Los pasos marcados \textbf{opc.} son opcionales: un paciente de consulta externa nunca pasa por prescripción intrahospitalaria ni por consumo.
+\end{cajaInfo}
+
+\begin{cajaNota}
+La barra de pasos se desliza de lado a lado si no caben todos en pantalla. Abajo de cada pantalla hay botones \boton{$\leftarrow$ Paso anterior} y \boton{Siguiente: \ldots $\rightarrow$} para avanzar sin volver al menú.
+\end{cajaNota}
+
+\subseccion{4.1 Ficha de identificación}
+
+\noindent En el paso \textbf{Resumen}, la tarjeta \boton{Ficha de identificación} genera el formato de la carátula del expediente, con los datos del paciente, del responsable y del médico tratante. Las tres firmas (paciente, médico y familiar) se capturan en la tableta y quedan incrustadas en el PDF.
+
+% ============================================================
+\vspace{10pt}
+\seccion{5. Historia clínica \hoja{7-8}}
+
+\noindent Muestra la hoja de primer llenado vigente, en solo lectura. El botón de arriba genera el PDF con el formato oficial de historia clínica.
+
+\capturaAncha{historia-clinica}{Historia clínica de ingreso. \boton{Generar PDF de historia clínica (formato MIT)} produce la hoja lista para el expediente físico.}
+
+% ============================================================
+\newpage
+\seccion{6. Consulta y notas de evolución}
+
+\noindent Cada consulta se documenta con una nota de evolución en formato \textbf{SOAP}: qué refiere el paciente (S), qué encuentra el médico (O), el diagnóstico (A) y el plan (P).
+
+\capturaAncha{notas}{Nota de evolución firmada, con su adenda y el botón para descargar el PDF.}
+
+\begin{cajaInfo}[Cómo se escribe y se firma una nota]
+\begin{enumerate}
+    \item Desde el resumen del expediente, \boton{Nueva nota de evolución}.
+    \item Se llenan los campos: subjetivo, objetivo, estudios, diagnósticos, plan y pronóstico.
+    \item \boton{Guardar borrador} conserva el avance sin cerrar nada.
+    \item \boton{Firmar} cierra la nota. El sistema revisa que no falte ningún campo obligatorio y avisa exactamente cuál falta.
+\end{enumerate}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+\textbf{Una nota firmada no se edita nunca.} Si hay que aclarar, corregir o agregar algo, se usa \boton{Firmar adenda}: la nota original se conserva intacta y la aclaración queda debajo, con su fecha, hora y autor. Es la única forma correcta de corregir un expediente clínico.
+\end{cajaOjo}
+
+% ============================================================
+\newpage
+\seccion{7. Receta \hoja{1, versión ambulatoria}}
+
+\noindent Es la prescripción que el paciente se lleva. Se genera con folio, sale en PDF con las cédulas del médico y \textbf{se envía por correo al paciente} de forma automática.
+
+\capturaAncha{recetas}{Recetas emitidas del paciente. La etiqueta de la derecha indica el estado del envío por correo.}
+
+\begin{cajaInfo}[Cómo hacer una receta]
+\begin{enumerate}
+    \item \boton{+ Nueva receta}.
+    \item Diagnóstico e indicaciones generales.
+    \item Un renglón por medicamento: \textbf{denominación genérica}, presentación, dosis, vía, frecuencia, duración y cantidad.
+    \item Al emitirla, el sistema genera el folio y el PDF, y encola el correo al paciente.
+\end{enumerate}
+\end{cajaInfo}
+
+\begin{cajaNota}
+Si el paciente no tiene correo, el expediente lo marca como \textbf{SIN CORREO} y la receta solo se imprime. El estado del envío (pendiente, enviada, error) se ve en esta misma lista y en \boton{Correos} del panel de administración.
+\end{cajaNota}
+
+\begin{cajaOjo}
+\textbf{El sistema no emite recetas de medicamentos controlados} (fracciones I a III del artículo 226 de la Ley General de Salud). Esos siguen requiriendo receta especial en papel con código de barras.
+\end{cajaOjo}
+
+% ============================================================
+\newpage
+\seccion{8. Prescripción médica de medicamentos \hoja{1}}
+
+\noindent Es la hoja de indicaciones farmacológicas del \textbf{paciente hospitalizado}: cuarto, diagnóstico, dieta y un renglón por medicamento con dosis, vía y horario. Es distinta de la receta: no se envía por correo, se queda en el expediente y en el cuarto del paciente.
+
+\capturaAncha{prescripcion}{Prescripción médica. Arriba el borrador que se está capturando; abajo, las hojas ya firmadas con su PDF.}
+
+\begin{cajaInfo}[Cómo capturarla]
+\begin{enumerate}
+    \item Cuarto, diagnóstico y dieta.
+    \item \boton{+ Agregar medicamento} añade renglones; la \textbf{×} de la derecha quita el que no se use.
+    \item Cada renglón necesita medicamento, dosis, vía y horario para poder firmar.
+    \item \boton{Firmar prescripción} cierra la hoja y habilita \boton{Descargar PDF}.
+\end{enumerate}
+\end{cajaInfo}
+
+\begin{cajaNota}
+Se puede tener \textbf{una hoja en borrador a la vez}. Cuando se firma, la siguiente indicación se captura en una hoja nueva --- igual que en papel, donde cada hoja firmada se archiva y se empieza otra.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{9. Hoja de órdenes médicas \hoja{9-10}}
+
+\noindent Es la bitácora diaria de indicaciones para enfermería. Cada renglón se clasifica para que la hoja impresa salga agrupada igual que el formato en papel.
+
+\capturaAncha{ordenes}{Hoja de órdenes médicas. La categoría de cada renglón ordena la hoja impresa.}
+
+\begin{cajaInfo}[Las seis categorías]
+\begin{itemize}
+    \item \textbf{Dieta} --- ayuno, blanda, líquidos, restricciones.
+    \item \textbf{Cuidados generales de enfermería} --- signos vitales, posición, curaciones, deambulación.
+    \item \textbf{Soluciones intravenosas} --- tipo, volumen y tiempo de infusión.
+    \item \textbf{Medicamentos} --- con dosis, vía y horario.
+    \item \textbf{Laboratorio y gabinete} --- estudios solicitados.
+    \item \textbf{Otras indicaciones} --- lo que no entra en las anteriores.
+\end{itemize}
+\end{cajaInfo}
+
+% ============================================================
+\newpage
+\seccion{10. Cirugía --- el expediente quirúrgico}
+
+\noindent Reúne en una sola pantalla los cuatro pasos de una cirugía: nota preoperatoria, consentimientos firmados, nota postoperatoria y citas de seguimiento.
+
+\capturaAncha{cirugia}{Expediente quirúrgico. Arriba, los PDF que se pueden descargar; abajo, el paso 1 con la nota preoperatoria ya firmada.}
+
+\begin{cajaInfo}[Los cuatro pasos de la cirugía]
+\begin{enumerate}
+    \item \textbf{Nota preoperatoria} --- diagnóstico, operación proyectada, tipo de cirugía, riesgo quirúrgico (ASA, Goldman) y pronóstico.
+    \item \textbf{Consentimientos y autorización} --- tres formatos que el paciente firma \textbf{en la tableta}:
+    \begin{itemize}
+        \item Carta de consentimiento bajo información (quirúrgico) \hoja{3}
+        \item Carta de consentimiento para procedimiento anestésico \hoja{4}
+        \item Hoja de autorización, solicitud y registro de intervención quirúrgica \hoja{5}
+    \end{itemize}
+    \item \textbf{Nota postoperatoria} --- técnica, hallazgos, incidentes, sangrado, conteo de gasas, equipo quirúrgico y plan. De aquí sale la \textbf{Descripción del procedimiento quirúrgico} \hoja{6} con sus nueve secciones numeradas.
+    \item \textbf{Citas postoperatorias} --- retiro de puntos, revisiones, curaciones.
+\end{enumerate}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+\textbf{Las firmas se capturan con el dedo o un lápiz en la tableta}, delante del paciente, y quedan incrustadas en el PDF. El paciente firma una sola vez por documento: no hay forma de volver a abrir un consentimiento ya generado. Si algo quedó mal, se genera un documento nuevo y se explica en una nota.
+\end{cajaOjo}
+
+\begin{cajaNota}
+Al firmar la nota postoperatoria, el expediente quirúrgico pasa automáticamente a estado \textbf{REALIZADA}. Ese cambio es lo que hace que la cirugía aparezca como concluida en el resto del sistema.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{11. Anestesiología \hoja{15-20}}
+
+\noindent El anestesiólogo entra a su propia pantalla y ve las cirugías programadas con el estado de sus tres hojas.
+
+\capturaAncha{anestesiologia-lista}{Lista de cirugías. Las etiquetas de colores dicen, de un vistazo, qué hoja falta: gris = pendiente, ámbar = borrador, verde = firmada.}
+
+\subseccion{11.1 Valoración preanestésica \hoja{15-16}}
+
+\noindent Datos del paciente, cirugía planeada, exploración física, laboratorio, gabinete y factores de riesgo.
+
+\capturaAncha{anest-valoracion}{Valoración preanestésica: identificación, cirugía planeada y antecedentes de importancia.}
+
+\capturaAncha{anest-laboratorio}{Exploración por segmentos y resultados de laboratorio y gabinete.}
+
+\noindent Las escalas de riesgo se llenan con casillas, con el mismo texto y los mismos puntajes que el formato en papel.
+
+\capturaAncha{anest-riesgo}{Clasificación de ASA, angina canadiense, Goldman y riesgo trombolítico. Los puntajes con paréntesis son los que suma cada casilla.}
+
+\begin{cajaNota}
+\textbf{No hay que sumar nada a mano.} El puntaje de Goldman y su clase (I a IV), y el riesgo trombolítico con su clasificación (mínimo, moderado, elevado), se calculan solos al generar el PDF de la hoja.
+\end{cajaNota}
+
+\capturaAncha{anest-via-aerea}{Predictores de enfermedad arterial coronaria y bloque de vía aérea difícil: Mallampati, apertura bucal, distancia tiromentoniana, subluxación mandibular y extensión de la cabeza.}
+
+\begin{cajaInfo}[Qué se registra de la vía aérea, y para qué sirve]
+\begin{itemize}
+    \item \textbf{Predicción de ventilación difícil} --- obesidad con IMC mayor a 26, barba, adoncia e historia de ronquidos: anticipan problemas para ventilar con mascarilla.
+    \item \textbf{Mallampati} --- clases I a IV según lo que se ve de la faringe con la boca abierta. A mayor clase, más difícil la laringoscopia.
+    \item \textbf{Apertura bucal} --- grado 1 (5 cm o más), grado 2 (3.5 a 5 cm) y grado 3 (menos de 3.5 cm).
+    \item \textbf{Distancia tiromentoniana} --- más de 6.5 cm es fácil; 6 cm es probable dificultad; menos de 6.5 cm es difícil.
+    \item \textbf{Subluxación mandibular} --- si los incisivos inferiores alcanzan a colocarse delante de los superiores, a la misma altura, o quedan detrás.
+    \item \textbf{Extensión de la cabeza} --- más de 100°, alrededor de 90° o menos de 80°.
+\end{itemize}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+Este bloque es el que justifica el plan anestésico. Si algo aquí anticipa una vía aérea difícil, conviene dejarlo escrito también en \textbf{antecedentes de importancia}: es lo primero que lee quien reciba al paciente en una urgencia.
+\end{cajaOjo}
+
+\newpage
+\subseccion{11.2 Registro anestésico y transanestésico \hoja{17-18, 20}}
+
+\noindent Se divide en tres bloques: la evaluación inmediata antes del procedimiento (con la verificación del equipo), el registro de la técnica anestésica, y la cuadrícula de signos vitales.
+
+\capturaAncha{anest-registro}{Registro anestésico: ayuno, acceso venoso, posición del paciente, protecciones y técnica anestésica.}
+
+\capturaAncha{anest-transanestesico}{Cuadrícula de signos vitales. Un renglón por lectura; el minuto es la posición en la gráfica.}
+
+\begin{cajaInfo}[La gráfica se dibuja sola]
+Lo que se captura como números en esta cuadrícula sale \textbf{graficado} en el PDF del registro transanestésico, con la escala de 30 a 240 del formato en papel:
+\begin{itemize}
+    \item \textbf{Aspa} --- tensión arterial (sistólica y diastólica).
+    \item \textbf{Punto lleno} --- frecuencia cardíaca.
+    \item \textbf{Punto hueco} --- respiración.
+\end{itemize}
+Los totales de egresos e ingresos también se suman solos para el balance hídrico.
+\end{cajaInfo}
+
+\newpage
+\subseccion{11.3 Recuperación anestésica y nota post-anestésica \hoja{19}}
+
+\noindent El Aldrete modificado se califica por tiempos (0, 5, 10, 20, 30, 40, 50 y 60 minutos), con los cinco criterios del formato.
+
+\capturaAncha{anest-aldrete}{Escala de Aldrete modificada por tiempos. La descripción de cada criterio está a la izquierda, para no tener que recordar los puntajes.}
+
+\capturaAncha{anest-plan-post}{Nota post-anestésica, plan post-anestésico y destino del paciente al salir de recuperación.}
+
+\begin{cajaNota}
+El \textbf{total} del Aldrete en cada columna se calcula al imprimir. Las escalas de \textbf{Ramsay} (sedación) y \textbf{Bromage} (bloqueo motor) se eligen con un solo clic, con su descripción completa a la vista.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{12. Hojas de consumo \hoja{11-14}}
+
+\noindent Aquí se controla lo que se gasta en el paciente y lo que se le cobra. Hay dos hojas, igual que en papel: \textbf{consumo en quirófano} y \textbf{consumo de piso}.
+
+\capturaAncha{consumo-abrir}{Abrir una hoja de consumo. La de quirófano pide equipo médico y tiempos de sala; la de piso pide cuarto y tratamiento.}
+
+\subseccion{12.1 Capturar los renglones}
+
+\noindent Enfermería registra las piezas conforme las usa. Al elegir un insumo del catálogo, el sistema trae su nombre, su categoría y su precio vigente; solo hay que poner la cantidad.
+
+\capturaAncha{consumo-detalle}{Renglones de la cuenta. Cada línea muestra cantidad, precio unitario e importe.}
+
+\capturaAncha{consumo-total}{Total de la cuenta y formulario para agregar un renglón, del catálogo o como concepto libre.}
+
+\begin{cajaInfo}[Quién hace qué en la hoja de consumo]
+\begin{itemize}
+    \item \textbf{Enfermería} --- registra la pieza y la cantidad, conforme se usa. Es el único momento en que el dato es confiable.
+    \item \textbf{Administración} --- revisa precios, captura los que falten (el sistema los marca como \emph{pendiente}) y \boton{Cierra la hoja} para fijar la cuenta.
+    \item Cualquiera de los dos puede descargar el PDF con el formato oficial: el catálogo completo por categoría, con subtotales y el total general de servicios.
+\end{itemize}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+\textbf{Cerrar la hoja es definitivo.} Una vez cerrada, no se pueden agregar, quitar ni corregir renglones, ni cambiar precios: la cuenta queda fija. Si aparece un insumo después del cierre, se abre una hoja nueva. Solo administración puede cerrar.
+\end{cajaOjo}
+
+\begin{cajaNota}
+\textbf{El renglón que no se anota, no se cobra.} La hoja impresa incluye los ciento cuarenta renglones del catálogo, en el mismo orden que el papel, para que sirva de lista de verificación al cierre de la cirugía.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{13. Documentos del expediente}
+
+\noindent Reúne todo lo que existe en PDF del paciente: los formatos que generó el sistema y los papeles escaneados que se subieron.
+
+\capturaAncha{documentos}{Documentos del expediente. Cada archivo trae su fecha, quién lo subió y su huella SHA-256.}
+
+\begin{cajaNota}
+\textbf{¿Qué es el SHA-256?} Es una huella digital del archivo. Si alguien modificara un solo carácter del PDF, la huella cambiaría y no coincidiría con la registrada. Sirve para demostrar, ante una verificación, que el documento es exactamente el que se generó ese día.
+\end{cajaNota}
+
+\noindent Para adjuntar un papel escaneado: se elige el \textbf{tipo} (consentimiento, estudio, resumen clínico u otro), se selecciona el archivo (PDF o imagen, máximo 10 MB) y \boton{Adjuntar}.
+
+% ============================================================
+\newpage
+\seccion{14. Administración}
+
+\noindent El panel administrativo da el panorama del día y el acceso a los catálogos.
+
+\capturaAncha{panel-admin}{Panel administrativo: pacientes, notas del día, recetas emitidas, cirugías y correos fallidos.}
+
+\subseccion{14.1 Insumos y precios}
+
+\noindent Es el catálogo que alimenta las hojas de consumo. El precio que se fija aquí es el que se copia al renglón cuando enfermería registra una pieza.
+
+\capturaAncha{insumos}{Catálogo de insumos. El aviso de arriba dice cuántos renglones siguen sin precio capturado.}
+
+\begin{cajaOjo}
+\textbf{Un insumo sin precio se cobra en cero.} El sistema avisa cuántos renglones están pendientes, y en cada hoja de consumo marca los renglones sin precio antes de dejar cerrar la cuenta. Vale la pena capturar los precios de los insumos de uso frecuente antes de operar.
+\end{cajaOjo}
+
+\subseccion{14.2 Configuración del establecimiento}
+
+\noindent Estos datos salen impresos en el encabezado de \textbf{los veinte formatos} y de las recetas.
+
+\capturaAncha{configuracion}{Configuración. La licencia sanitaria, el RFC y los datos de COFEPRIS son los que aparecen en la papelería generada.}
+
+\subseccion{14.3 Bitácora}
+
+\noindent Registro de todo lo que pasa en el sistema: accesos, consultas de expediente, firmas, generación de formatos y cambios de catálogos.
+
+\capturaAncha{bitacora}{Bitácora de actividad, filtrable por usuario, acción y fecha.}
+
+\begin{cajaNota}
+La bitácora es \textbf{append-only}: solo se agregan renglones. No admite ediciones ni borrados, ni siquiera desde la base de datos. Es la evidencia de quién vio y quién firmó cada cosa.
+\end{cajaNota}
+
+\subseccion{14.4 Pacientes, usuarios, doctores y especialidades}
+
+\noindent \boton{Pacientes} da el listado global con búsqueda por nombre, CURP o expediente. \boton{Usuarios} da de alta a enfermería y anestesiología. \boton{Doctores} da de alta a los médicos tratantes y guarda la \textbf{rúbrica digitalizada} que se incrusta en los PDF. \boton{Especialidades} administra el catálogo que se usa al asignar pacientes.
+
+\begin{cajaInfo}[Qué pide cada alta de personal]
+\begin{itemize}
+    \item \textbf{Médico tratante} --- nombre con título, correo, cédula profesional, institución que expidió el título, consultorio y \textbf{al menos una especialidad}. Sin especialidad no se le pueden asignar pacientes.
+    \item \textbf{Anestesiólogo} --- lo mismo, más su \textbf{cédula profesional}: se imprime en la valoración preanestésica, en el registro anestésico y en la nota post-anestésica. Al darlo de alta aparece también en \boton{Doctores} para cargarle la rúbrica.
+    \item \textbf{Enfermería} --- nombre, correo y contraseña temporal. No lleva cédula porque no firma formatos.
+\end{itemize}
+Todas las altas piden una \textbf{contraseña temporal} de al menos 10 caracteres, y el sistema exige cambiarla en el primer acceso.
+\end{cajaInfo}
+
+\begin{cajaOjo}
+\textbf{La rúbrica digitalizada no es opcional en la práctica.} Mientras un médico o anestesiólogo no la tenga cargada, todos sus PDF salen con la línea de firma en blanco y hay que firmarlos a mano. Se carga una sola vez, con el dedo o un lápiz en la tableta, desde \boton{Doctores}.
+\end{cajaOjo}
+
+\capturaAncha{pacientes-lista}{Listado global de pacientes (vista de administración).}
+
+% ============================================================
+\newpage
+\seccion{15. Los 20 formatos y de dónde sale cada uno}
+
+\noindent Ésta es la tabla de referencia rápida: qué hoja del expediente en papel corresponde a qué pantalla del sistema.
+
+\vspace{4pt}
+\noindent\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.08\linewidth} >{\raggedright\arraybackslash}p{0.33\linewidth} >{\raggedright\arraybackslash}p{0.26\linewidth} X@{}}
+\toprule
+\textbf{\#} & \textbf{Formato} & \textbf{Dónde se captura} & \textbf{Quién} \\
+\midrule
+1 & Prescripción médica de medicamentos & Paso Prescripción & Médico \\
+2 & Ficha de identificación & Paso Resumen & Médico / recepción \\
+3 & Consentimiento bajo información (quirúrgico) & Paso Cirugía & Cirujano \\
+4 & Consentimiento para procedimiento anestésico & Paso Cirugía & Anestesiólogo \\
+5 & Autorización: solicitud y registro de intervención & Paso Cirugía & Cirujano \\
+6 & Descripción del procedimiento quirúrgico & Paso Cirugía & Cirujano \\
+7--8 & Historia clínica & Enfermería / paso Historia & Enfermería y médico \\
+9--10 & Hoja de órdenes médicas & Paso Órdenes médicas & Médico \\
+11--12 & Hoja de consumo en quirófano & Paso Consumo & Enfermería + admón. \\
+13--14 & Hoja de consumo de piso & Paso Consumo & Enfermería + admón. \\
+15--16 & Valoración preanestésica y factores de riesgo & Anestesiología & Anestesiólogo \\
+17 & Plan anestésico y registro anestésico & Anestesiología & Anestesiólogo \\
+18, 20 & Registro transanestésico (gráfica) & Anestesiología & Anestesiólogo \\
+19 & Recuperación y nota post-anestésica & Anestesiología & Anestesiólogo \\
+\bottomrule
+\end{tabularx}
+
+\vspace{8pt}
+\begin{cajaNota}
+Además de estos, el sistema genera la \textbf{receta ambulatoria} con folio y envío por correo, y las \textbf{notas de evolución} en formato SOAP, que la NOM-004 también exige.
+\end{cajaNota}
+
+% ============================================================
+\newpage
+\seccion{16. Reglas que el sistema no te deja romper}
+
+\noindent No son restricciones caprichosas: son los requisitos de la NOM-004-SSA3-2012 aplicados en el software, para que el expediente aguante una verificación sanitaria.
+
+\begin{cajaInfo}[Lo que está bloqueado a propósito]
+\begin{itemize}
+    \item \textbf{Una hoja firmada no se edita.} Notas de evolución, notas pre y postoperatorias, prescripciones, órdenes médicas y las tres hojas de anestesiología: al firmar, quedan cerradas. La corrección se hace con adenda o con una hoja nueva.
+    \item \textbf{Una hoja de consumo cerrada no se toca.} Ni renglones ni precios.
+    \item \textbf{La hoja de primer llenado cerrada no se corrige encima:} se captura una versión nueva.
+    \item \textbf{No se puede firmar incompleto.} Si falta un campo obligatorio, el sistema dice exactamente cuál.
+    \item \textbf{La bitácora no se borra.}
+    \item \textbf{Un doctor solo ve sus pacientes asignados.} Administración ve todo, pero no escribe en el expediente clínico.
+    \item \textbf{Nada se borra.} No hay botón de eliminar expedientes, notas ni recetas: se cancelan con motivo, y la cancelación queda registrada.
+\end{itemize}
+\end{cajaInfo}
+
+\begin{cajaOjo}
+Estas reglas están puestas \textbf{en la base de datos}, no solo en la pantalla. Aunque alguien intentara modificar un registro firmado por fuera del sistema, la base lo rechaza.
+\end{cajaOjo}
+
+% ============================================================
+\newpage
+\seccion{17. Preguntas frecuentes del equipo}
+
+\subseccion{Registré un paciente y no aparece para el doctor}
+
+\noindent Revise que la hoja de primer llenado esté \textbf{cerrada}. Mientras está en borrador, el paciente no aparece como disponible para consulta.
+
+\subseccion{Soy doctor y no veo a un paciente que sí atendí}
+
+\noindent Solo ve pacientes con \textbf{asignación activa} suya. Si el paciente está disponible pero sin doctor, tómelo desde \boton{Pacientes disponibles}. Si lo atendió otro especialista, ese episodio no le corresponde.
+
+\subseccion{Firmé una nota con un error}
+
+\noindent No se edita. Use \boton{Firmar adenda} en la misma nota: la aclaración queda con su fecha, hora y autor, y la nota original se conserva. Es la forma correcta y la que espera un verificador.
+
+\subseccion{El paciente ya firmó el consentimiento pero se cambió la fecha de cirugía}
+
+\noindent El consentimiento firmado se conserva tal cual. Actualice la fecha en el expediente quirúrgico y, si el cambio es relevante para lo que el paciente autorizó, genere un consentimiento nuevo y explique el motivo en una nota de evolución.
+
+\subseccion{Cerré la hoja de consumo y faltó cobrar un material}
+
+\noindent Abra una \textbf{hoja de consumo nueva} para ese paciente con los renglones faltantes. La hoja cerrada no se modifica; las dos quedan en el expediente y suman a la cuenta.
+
+\subseccion{¿Puedo usar el sistema desde la tableta en quirófano?}
+
+\noindent Sí, y es lo recomendable: las firmas del paciente y de los testigos se capturan con el dedo o un lápiz directamente en pantalla.
+
+\subseccion{¿Dónde quedan los PDF que genero?}
+
+\noindent Todos en el paso \textbf{Documentos} del expediente, con su fecha, quién los generó y su huella SHA-256. Desde ahí se descargan e imprimen cuantas veces se necesite.
+
+\subseccion{¿Por qué la receta no le llegó al paciente?}
+
+\noindent Revise en la lista de recetas el estado del envío. Si dice \textbf{error} o \textbf{sin correo}, avise a administración: puede ser que el paciente no tenga correo registrado o que el correo esté mal escrito. La receta siempre se puede imprimir del PDF.
+
+\subseccion{Se me olvidó la contraseña}
+
+\noindent Pídale a administración que la reinicie desde \boton{Usuarios}. Le darán una contraseña temporal y el sistema le pedirá cambiarla al entrar.
+
+\vspace{12pt}
+\begin{cajaNota}
+¿Dudas usando el sistema? Escríbale a administración o a soporte técnico y lo resolvemos juntos.
+\end{cajaNota}
+
+% ============================================================
+% APÉNDICE A --- Cuentas de prueba
+% Este apéndice es solo para la etapa de pruebas y capacitación.
+% Para la versión que se entregue en operación real, bórrese este bloque
+% completo (hasta antes de \end{document}) y recompílese el manual.
+% ============================================================
+\newpage
+\seccion{Apéndice A. Cuentas de prueba}
+
+\noindent Para que el equipo pueda recorrer el sistema antes de trabajar con pacientes reales, existe un juego de cuentas de prueba: al menos una por cada rol, y varias donde conviene que trabajen dos personas a la vez.
+
+\vspace{4pt}
+\begin{cajaOjo}
+\textbf{Estas cuentas comparten una misma contraseña conocida.} Sirven para practicar, no para operar. \textbf{Antes de registrar al primer paciente real hay que desactivarlas} en \boton{Administración $\rightarrow$ Usuarios}, y este apéndice debe retirarse del manual que se entregue al personal.
+\end{cajaOjo}
+
+\vspace{6pt}
+\noindent Contraseña de todas las cuentas: \cd{PruebaMIT2026!}
+
+\vspace{6pt}
+\noindent\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth} >{\raggedright\arraybackslash}p{0.34\linewidth} X@{}}
+\toprule
+\textbf{Rol} & \textbf{Correo} & \textbf{Qué probar con ella} \\
+\midrule
+Administración & admin.pruebas & Catálogos, insumos y precios, bitácora, configuración y cierre de cuentas. \\
+Enfermería & enf.matutino.pruebas & Registro de pacientes, hoja de primer llenado y hojas de consumo. \\
+Enfermería & enf.vespertino.pruebas & Segundo turno: comprobar que no ve los borradores del turno matutino. \\
+Médico & dr.estetica.pruebas & Flujo quirúrgico completo: consentimientos, notas pre y post, citas. \\
+Médico & dra.ortopedia.pruebas & Consulta, notas de evolución, recetas y órdenes médicas. \\
+Médico & dra.gineco.pruebas & Tiene dos especialidades: expediente con varios episodios de atención. \\
+Anestesiólogo & anest.uno.pruebas & Las tres hojas de anestesiología de una cirugía. \\
+Anestesiólogo & anest.dos.pruebas & Repartirse las cirugías programadas con el otro anestesiólogo. \\
+\bottomrule
+\end{tabularx}
+
+\vspace{4pt}
+\noindent{\footnotesize\color{gristexto}Todos los correos terminan en \cd{@medicaltower.mx}.}
+
+\newpage
+\subseccion{En qué orden conviene probar}
+
+\begin{cajaInfo}[Un recorrido completo, entre cuatro personas]
+\begin{enumerate}
+    \item \textbf{Enfermería} registra un paciente nuevo y cierra su hoja de primer llenado.
+    \item \textbf{Un médico} lo toma desde \boton{Pacientes disponibles}, escribe la historia y una nota de evolución, y le hace una receta.
+    \item \textbf{El mismo médico} abre el expediente quirúrgico, recaba los tres consentimientos con firma en la tableta y firma la nota preoperatoria.
+    \item \textbf{El anestesiólogo} captura la valoración preanestésica, el registro transanestésico y la nota post-anestésica.
+    \item \textbf{El médico} firma la nota postoperatoria y programa las citas.
+    \item \textbf{Enfermería} llena la hoja de consumo de quirófano.
+    \item \textbf{Administración} captura los precios que falten y cierra la cuenta.
+    \item Cualquiera descarga los PDF desde el paso \textbf{Documentos} y los compara contra las hojas en papel.
+\end{enumerate}
+\end{cajaInfo}
+
+\begin{cajaNota}
+\textbf{Vale la pena probar también lo que el sistema no deja hacer:} intentar editar una nota ya firmada, firmar una hoja con campos vacíos, o agregar un renglón a una hoja de consumo cerrada. Debe negarse en los tres casos y decir por qué (sección 16).
+\end{cajaNota}
+
+\vspace{8pt}
+\subseccion{Para soporte técnico}
+
+\noindent Las cuentas se generan con \cd{npm run seed:usuarios} sobre la base de datos del sistema. El comando es idempotente: si alguien olvida la contraseña a media prueba, se vuelve a ejecutar y queda restablecida y desbloqueada. Con \cd{npm run seed:demo} se carga además un paciente ya recorrido de punta a punta (con receta, prescripción, órdenes, cirugía, las tres hojas de anestesiología y una cuenta de consumo), asignado al médico de Cirugía Estética de esta lista.
+
+\end{document}
