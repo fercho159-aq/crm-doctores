@@ -135,6 +135,10 @@ export async function crearEnfermeria(_p: ActionState, fd: FormData): Promise<Ac
 const anestesiologoSchema = z.object({
   nombreCompleto: z.string().min(5, "Nombre completo requerido"),
   email: z.string().email("Correo inválido"),
+  cedulaProfesional: z.string().min(4, "Cédula profesional obligatoria: se imprime en las hojas de anestesiología"),
+  cedulaEspecialidad: z.string().optional(),
+  institucionTitulo: z.string().min(3, "Institución del título obligatoria"),
+  telefono: z.string().optional(),
   passwordTemporal: z.string().min(10, "Contraseña temporal: mínimo 10 caracteres"),
 });
 
@@ -144,16 +148,28 @@ export async function crearAnestesiologo(_p: ActionState, fd: FormData): Promise
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const existe = await db.usuario.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (existe) return { error: "Ya existe un usuario con ese correo" };
+  const d = parsed.data;
+  // La ficha de Doctor guarda la cédula y la rúbrica que salen impresas en la
+  // valoración preanestésica, el registro anestésico y la nota post-anestésica.
   const u = await db.usuario.create({
     data: {
       rol: "ANESTESIOLOGO",
-      email: parsed.data.email.toLowerCase(),
-      passwordHash: await hashPassword(parsed.data.passwordTemporal),
-      nombreCompleto: parsed.data.nombreCompleto,
+      email: d.email.toLowerCase(),
+      passwordHash: await hashPassword(d.passwordTemporal),
+      nombreCompleto: d.nombreCompleto,
       debeCambiarPassword: true,
+      doctor: {
+        create: {
+          cedulaProfesional: d.cedulaProfesional,
+          cedulaEspecialidad: d.cedulaEspecialidad || null,
+          institucionTitulo: d.institucionTitulo,
+          consultorio: "Anestesiología",
+          telefono: d.telefono || null,
+        },
+      },
     },
   });
-  await audit({ usuarioId: user.id, rol: user.rol, accion: "CREAR", entidad: "usuario", entidadId: u.id, datosDespues: { rol: "ANESTESIOLOGO", email: u.email } });
+  await audit({ usuarioId: user.id, rol: user.rol, accion: "CREAR", entidad: "usuario", entidadId: u.id, datosDespues: { rol: "ANESTESIOLOGO", email: u.email, cedula: d.cedulaProfesional } });
   revalidatePath("/admin/usuarios");
   return { ok: true };
 }
@@ -192,11 +208,18 @@ export async function resetPassword(_p: ActionState, fd: FormData): Promise<Acti
 
 // ── Configuración del establecimiento ──────────────────────────────
 
+const vacioANull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
+
 const configSchema = z.object({
   razonSocial: z.string().min(3),
   domicilio: z.string().min(5, "Domicilio del establecimiento: obligatorio en recetas (RIS)"),
   telefono: z.string().min(7),
   emailRemitente: z.string().email(),
+  // Datos que la papelería oficial imprime en el encabezado de cada formato.
+  licenciaSanitaria: z.preprocess(vacioANull, z.string().nullable()),
+  rfc: z.preprocess(vacioANull, z.string().nullable()),
+  expedienteCofepris: z.preprocess(vacioANull, z.string().nullable()),
+  oficioCofepris: z.preprocess(vacioANull, z.string().nullable()),
 });
 
 export async function guardarConfiguracion(_p: ActionState, fd: FormData): Promise<ActionState> {

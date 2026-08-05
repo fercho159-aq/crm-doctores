@@ -66,7 +66,15 @@ export function Stepper({ pasos }: { pasos: Paso[] }) {
                   )}
                 >
                   {p.label}
-                  {p.opcional && <span className={cn("ml-1 text-xs", esActual ? "text-blue-100" : "text-slate-400")}>(opcional)</span>}
+                  {/* Marca abreviada: con nueve pasos, «(opcional)» completo desborda la barra. */}
+                  {p.opcional && (
+                    <span
+                      title="Paso opcional"
+                      className={cn("ml-1 text-xs", esActual ? "text-blue-100" : "text-slate-400")}
+                    >
+                      opc.
+                    </span>
+                  )}
                 </span>
               </Link>
             </li>

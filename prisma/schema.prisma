@@ -34,6 +34,12 @@ model Usuario {
   hojasCapturadas HojaPrimerLlenado[] @relation("capturista")
   notasElaboradas NotaEvolucion[]
   bitacora  Bitacora[]
+  prescripciones  HojaPrescripcion[] @relation("prescriptor")
+  hojasOrdenes    HojaOrdenes[]      @relation("ordenante")
+  hojasConsumo    HojaConsumo[]      @relation("consumoCapturista")
+  valoracionesPreanestesicas ValoracionPreanestesica[] @relation("anestesiologoValoracion")
+  registrosAnestesicos       RegistroAnestesico[]      @relation("anestesiologoRegistro")
+  notasPostanestesicas       NotaPostanestesica[]      @relation("anestesiologoPostanestesica")
 
   @@map("usuario")
 }
@@ -129,6 +135,12 @@ model Paciente {
   asignaciones Asignacion[]
   documentos   Documento[]
   expedientesQx ExpedienteQuirurgico[]
+  prescripciones HojaPrescripcion[]
+  hojasOrdenes   HojaOrdenes[]
+  hojasConsumo   HojaConsumo[]
+  valoracionesPreanestesicas ValoracionPreanestesica[]
+  registrosAnestesicos       RegistroAnestesico[]
+  notasPostanestesicas       NotaPostanestesica[]
 
   @@index([nombre, apellidoPaterno])
   @@index([curp])
@@ -211,6 +223,8 @@ model Asignacion {
   recetas       Receta[]
   expedientesQx ExpedienteQuirurgico[]
   citas         CitaPostoperatoria[]
+  prescripciones HojaPrescripcion[]
+  hojasOrdenes   HojaOrdenes[]
 
   @@index([doctorId, estado])
   @@index([pacienteId, estado])
@@ -335,6 +349,11 @@ model ExpedienteQuirurgico {
   consentimientoDocId String? @map("consentimiento_doc_id") @db.Uuid
   consentimientoFecha DateTime? @map("consentimiento_fecha")
 
+  hojasConsumo    HojaConsumo[]
+  valoracionPre   ValoracionPreanestesica?
+  registroAnestesico RegistroAnestesico?
+  notaPostanestesica NotaPostanestesica?
+
   @@map("expediente_quirurgico")
 }
 
@@ -425,6 +444,15 @@ enum TipoDocumento {
   ESTUDIO
   RESUMEN_CLINICO
   OTRO
+  FICHA_IDENTIFICACION
+  PRESCRIPCION
+  ORDENES_MEDICAS
+  DESCRIPCION_QX
+  CONSUMO_QUIROFANO
+  CONSUMO_PISO
+  VALORACION_PREANESTESICA
+  REGISTRO_ANESTESICO
+  NOTA_POSTANESTESICA
 }
 
 model Documento {
@@ -492,6 +520,407 @@ model Configuracion {
   telefono    String  @default("")
   logotipo    String? // data-URL
   emailRemitente String @default("onboarding@resend.dev") @map("email_remitente")
+  // Datos que la papelería oficial imprime en el encabezado de cada formato.
+  licenciaSanitaria String? @map("licencia_sanitaria")
+  rfc               String?
+  expedienteCofepris String? @map("expediente_cofepris")
+  oficioCofepris     String? @map("oficio_cofepris")
 
   @@map("configuracion")
+}
+
+// ─────────── Prescripción médica de medicamentos (hoja oficial 1) ───────────
+// Hoja de indicaciones farmacológicas del paciente hospitalizado: cuarto, dieta y
+// renglones fecha / medicamento / dosis / vía / horario. Distinta de `Receta`,
+// que es la prescripción ambulatoria con folio y envío por correo.
+
+model HojaPrescripcion {
+  id           String     @id @default(uuid()) @db.Uuid
+  pacienteId   String     @map("paciente_id") @db.Uuid
+  paciente     Paciente   @relation(fields: [pacienteId], references: [id])
+  asignacionId String     @map("asignacion_id") @db.Uuid
+  asignacion   Asignacion @relation(fields: [asignacionId], references: [id])
+  cuarto       String?
+  diagnostico  String?
+  dieta        String?
+  elaboradaPorId String   @map("elaborada_por") @db.Uuid
+  elaboradaPor   Usuario  @relation("prescriptor", fields: [elaboradaPorId], references: [id])
+  estado       EstadoNota @default(BORRADOR)
+  fechaHora    DateTime   @default(now()) @map("fecha_hora")
+  fechaFirma   DateTime?  @map("fecha_firma")
+
+  partidas PrescripcionPartida[]
+
+  @@index([pacienteId])
+  @@map("hoja_prescripcion")
+}
+
+model PrescripcionPartida {
+  id          String   @id @default(uuid()) @db.Uuid
+  hojaId      String   @map("hoja_prescripcion_id") @db.Uuid
+  hoja        HojaPrescripcion @relation(fields: [hojaId], references: [id])
+  orden       Int
+  fecha       DateTime @db.Date
+  medicamento String
+  dosis       String
+  via         String
+  horario     String
+
+  @@index([hojaId])
+  @@map("prescripcion_partida")
+}
+
+// ─────────── Hoja de órdenes médicas (hojas oficiales 9-10) ───────────
+
+enum CategoriaOrden {
+  DIETA
+  CUIDADOS
+  SOLUCIONES
+  MEDICAMENTOS
+  ESTUDIOS
+  OTRO
+}
+
+model HojaOrdenes {
+  id           String     @id @default(uuid()) @db.Uuid
+  pacienteId   String     @map("paciente_id") @db.Uuid
+  paciente     Paciente   @relation(fields: [pacienteId], references: [id])
+  asignacionId String     @map("asignacion_id") @db.Uuid
+  asignacion   Asignacion @relation(fields: [asignacionId], references: [id])
+  fechaHora    DateTime   @default(now()) @map("fecha_hora")
+  cuarto       String?
+  elaboradaPorId String   @map("elaborada_por") @db.Uuid
+  elaboradaPor   Usuario  @relation("ordenante", fields: [elaboradaPorId], references: [id])
+  estado       EstadoNota @default(BORRADOR)
+  fechaFirma   DateTime?  @map("fecha_firma")
+
+  partidas OrdenPartida[]
+
+  @@index([pacienteId])
+  @@map("hoja_ordenes_medicas")
+}
+
+model OrdenPartida {
+  id        String         @id @default(uuid()) @db.Uuid
+  hojaId    String         @map("hoja_ordenes_id") @db.Uuid
+  hoja      HojaOrdenes    @relation(fields: [hojaId], references: [id])
+  orden     Int
+  categoria CategoriaOrden @default(OTRO)
+  texto     String
+
+  @@index([hojaId])
+  @@map("orden_partida")
+}
+
+// ─────────── Hojas de consumo en quirófano y de piso (hojas oficiales 11-14) ───────────
+
+enum CategoriaInsumo {
+  MATERIAL
+  MEDICAMENTO
+  SUTURA
+  SOLUCION
+  OTRO
+  SERVICIO
+}
+
+enum TipoConsumo {
+  QUIROFANO
+  PISO
+}
+
+// Catálogo de insumos cobrables con su precio vigente (lo administra el ADMIN).
+model Insumo {
+  id        String          @id @default(uuid()) @db.Uuid
+  clave     String?
+  nombre    String
+  categoria CategoriaInsumo
+  precio    Decimal         @default(0) @db.Decimal(12, 2)
+  orden     Int             @default(0)
+  activo    Boolean         @default(true)
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  partidas ConsumoPartida[]
+
+  @@unique([categoria, nombre])
+  @@index([categoria, orden])
+  @@map("insumo")
+}
+
+model HojaConsumo {
+  id             String      @id @default(uuid()) @db.Uuid
+  pacienteId     String      @map("paciente_id") @db.Uuid
+  paciente       Paciente    @relation(fields: [pacienteId], references: [id])
+  expedienteQxId String?     @map("expediente_quirurgico_id") @db.Uuid
+  expedienteQx   ExpedienteQuirurgico? @relation(fields: [expedienteQxId], references: [id])
+  tipo           TipoConsumo
+
+  cuarto      String?
+  tratamiento String?
+  procedimiento String?
+  fechaIngreso  DateTime? @map("fecha_ingreso")
+  fechaEgreso   DateTime? @map("fecha_egreso")
+  horaIngresoQuirofano String? @map("hora_ingreso_quirofano")
+  horaTerminoQuirofano String? @map("hora_termino_quirofano")
+  turno         String?
+
+  medicoPediatra      String? @map("medico_pediatra")
+  medicoTratante      String? @map("medico_tratante")
+  medicoCirujano      String? @map("medico_cirujano")
+  medicoAnestesiologo String? @map("medico_anestesiologo")
+  medicoAyudante      String? @map("medico_ayudante")
+  enfermera           String?
+  instrumentista      String?
+
+  capturadoPorId String     @map("capturado_por") @db.Uuid
+  capturadoPor   Usuario    @relation("consumoCapturista", fields: [capturadoPorId], references: [id])
+  estado         EstadoHoja @default(BORRADOR)
+  fechaCierre    DateTime?  @map("fecha_cierre")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  partidas ConsumoPartida[]
+
+  @@index([pacienteId])
+  @@index([expedienteQxId])
+  @@map("hoja_consumo")
+}
+
+model ConsumoPartida {
+  id             String          @id @default(uuid()) @db.Uuid
+  hojaId         String          @map("hoja_consumo_id") @db.Uuid
+  hoja           HojaConsumo     @relation(fields: [hojaId], references: [id])
+  insumoId       String?         @map("insumo_id") @db.Uuid
+  insumo         Insumo?         @relation(fields: [insumoId], references: [id])
+  descripcion    String
+  categoria      CategoriaInsumo
+  cantidad       Decimal         @default(1) @db.Decimal(10, 2)
+  precioUnitario Decimal         @default(0) @map("precio_unitario") @db.Decimal(12, 2)
+  importe        Decimal         @default(0) @db.Decimal(12, 2)
+  // Sólo la hoja de piso registra fecha, enfermera y observaciones por renglón.
+  fecha          DateTime?       @db.Date
+  enfermera      String?
+  observaciones  String?
+  orden          Int             @default(0)
+
+  @@index([hojaId])
+  @@map("consumo_partida")
+}
+
+// ─────────── Anestesiología (hojas oficiales 15-20) ───────────
+
+// Hojas 15-16: valoración preanestésica y valoración de factores de riesgo.
+// Los bloques de casillas del formato (ASA, Goldman, riesgo trombolítico, vía
+// aérea difícil, Glasgow, plan anestésico) se guardan en JSON porque son
+// listas de verificación con puntajes, no datos consultables por separado.
+model ValoracionPreanestesica {
+  id             String   @id @default(uuid()) @db.Uuid
+  expedienteQxId String   @unique @map("expediente_quirurgico_id") @db.Uuid
+  expedienteQx   ExpedienteQuirurgico @relation(fields: [expedienteQxId], references: [id])
+  pacienteId     String   @map("paciente_id") @db.Uuid
+  paciente       Paciente @relation(fields: [pacienteId], references: [id])
+
+  habitacion   String?
+  servicio     String?
+  folio        String?
+  tipoPago     String? @map("tipo_pago") // SEGURO | PARTICULAR
+  fechaIngreso DateTime? @map("fecha_ingreso")
+  horaIngreso  String?   @map("hora_ingreso")
+
+  diagnosticoPrequirurgico String? @map("diagnostico_prequirurgico")
+  cirugiaPlaneada          String? @map("cirugia_planeada")
+  cirujano                 String?
+  anestesiologo            String?
+  tipoCirugia              Json?   @map("tipo_cirugia") // mayor/menor/ambulatoria/urgencia/electiva/reintervencion
+  antecedentesImportancia  String? @map("antecedentes_importancia")
+
+  pesoKg  Decimal? @map("peso_kg") @db.Decimal(5, 1)
+  tallaCm Decimal? @map("talla_cm") @db.Decimal(5, 1)
+  imc     Decimal? @db.Decimal(5, 2)
+
+  temperatura Decimal? @db.Decimal(4, 1)
+  ta          String?
+  fr          Int?
+  fc          Int?
+  spo2        Int?
+
+  exCabeza          String? @map("ex_cabeza")
+  exCuello          String? @map("ex_cuello")
+  exRespiratorio    String? @map("ex_respiratorio")
+  exCardiovascular  String? @map("ex_cardiovascular")
+  exGastrointestinal String? @map("ex_gastrointestinal")
+  exGenitourinario  String? @map("ex_genitourinario")
+
+  labFecha       DateTime? @map("lab_fecha")
+  grupoSanguineo String?   @map("grupo_sanguineo")
+  factorRh       String?   @map("factor_rh")
+  hemoglobina  String?
+  hematocrito  String?
+  plaquetas    String?
+  leucocitos   String?
+  tp           String?
+  tpt          String?
+  tt           String?
+  glucosa      String?
+  creatinina   String?
+  urea         String?
+  sodio        String?
+  potasio      String?
+  cloro        String?
+  calcio       String?
+  labOtros     String? @map("lab_otros")
+
+  ecg           String?
+  rayosX        String? @map("rayos_x")
+  ultrasonido   String?
+  gabineteOtros String? @map("gabinete_otros")
+
+  factoresRiesgo   Json? @map("factores_riesgo")   // tabaquismo, alcoholismo, alergias, anestesias previas…
+  asa              String?
+  anginaCanadiense String? @map("angina_canadiense")
+  goldman          Json?   // variables de Goldman marcadas
+  predictores      Json?   // predictores de enfermedad arterial coronaria por nivel
+  goldmanPuntos    Int?    @map("goldman_puntos")
+  goldmanClase     String? @map("goldman_clase")
+  trombolitico     Json?   // predictores menores/intermedios/mayores + subtotales + riesgo total
+  neurologico      Json?   // pupilas + Glasgow (ojos, motor, verbal, total)
+  viaAerea         Json?   @map("via_aerea") // Mallampati, tiromentoniana, subluxación, apertura
+  planAnestesico   Json?   @map("plan_anestesico")
+
+  fechaElaboracion   DateTime?  @map("fecha_elaboracion")
+  anestesiologoId    String     @map("anestesiologo_id") @db.Uuid
+  anestesiologoUsuario Usuario  @relation("anestesiologoValoracion", fields: [anestesiologoId], references: [id])
+  firmaAnestesiologo String?    @map("firma_anestesiologo") // data-URL rúbrica
+  estado             EstadoNota @default(BORRADOR)
+  fechaFirma         DateTime?  @map("fecha_firma")
+
+  @@index([pacienteId])
+  @@map("valoracion_preanestesica")
+}
+
+// Hojas 17, 18 y 20: evaluación inmediata previa, registro anestésico y
+// registro transanestésico (gráfica de signos vitales y balance hídrico).
+model RegistroAnestesico {
+  id             String   @id @default(uuid()) @db.Uuid
+  expedienteQxId String   @unique @map("expediente_quirurgico_id") @db.Uuid
+  expedienteQx   ExpedienteQuirurgico @relation(fields: [expedienteQxId], references: [id])
+  pacienteId     String   @map("paciente_id") @db.Uuid
+  paciente       Paciente @relation(fields: [pacienteId], references: [id])
+
+  evalFecha                 DateTime? @map("eval_fecha")
+  evalHora                  String?   @map("eval_hora")
+  consentimientoAnestesia   Boolean?  @map("consentimiento_anestesia")
+  identificacionCorroborada Boolean?  @map("identificacion_corroborada")
+  verificacionEquipo        Json?     @map("verificacion_equipo")
+  signosBasales             Json?     @map("signos_basales")
+  medicacionPreanestesica   Json?     @map("medicacion_preanestesica")
+  evalObservaciones         String?   @map("eval_observaciones")
+
+  horasAyuno            String?  @map("horas_ayuno")
+  premedicacion         Boolean?
+  premedicacionDetalle  String?  @map("premedicacion_detalle")
+  accesoVenoso          Boolean? @map("acceso_venoso")
+  accesoSitio           String?  @map("acceso_sitio")
+  calibreCateter        String?  @map("calibre_cateter")
+  posicionPaciente      String?  @map("posicion_paciente")
+  posicionBrazos        String?  @map("posicion_brazos")
+  proteccionOjos        Boolean? @map("proteccion_ojos")
+  proteccionProminencias Boolean? @map("proteccion_prominencias")
+  torniquete            Boolean?
+  torniqueteSitio       String?  @map("torniquete_sitio")
+  torniqueteInicia      String?  @map("torniquete_inicia")
+  torniqueteTermina     String?  @map("torniquete_termina")
+  tecnicaAnestesica     String?  @map("tecnica_anestesica")
+  anestesiaLocal        Json?    @map("anestesia_local")
+  anestesiaRegional     Json?    @map("anestesia_regional")
+  anestesiaGeneral      Json?    @map("anestesia_general")
+  casoObstetrico        Json?    @map("caso_obstetrico")
+
+  agentes         String?
+  tiempos         Json?   // ingreso, inicio/final anestesia, inicio/final cirugía, recuperación
+  tipoVentilacion String? @map("tipo_ventilacion")
+  egresos         Json?   // pérdidas insensibles, ayuno, exposición qx, diuresis, sangrado
+  ingresos        Json?   // cristaloides, coloides, sangre, plasma
+  balanceHidrico  String? @map("balance_hidrico")
+  aldreteFinal    Int?    @map("aldrete_final")
+  pasaA           String? @map("pasa_a")
+
+  anestesiologoId      String     @map("anestesiologo_id") @db.Uuid
+  anestesiologoUsuario Usuario    @relation("anestesiologoRegistro", fields: [anestesiologoId], references: [id])
+  firmaAnestesiologo   String?    @map("firma_anestesiologo")
+  estado               EstadoNota @default(BORRADOR)
+  fechaFirma           DateTime?  @map("fecha_firma")
+
+  lecturas TransanestesicoLectura[]
+  farmacos TransanestesicoFarmaco[]
+
+  @@index([pacienteId])
+  @@map("registro_anestesico")
+}
+
+// Cada columna de la cuadrícula del registro transanestésico (un punto en el tiempo).
+model TransanestesicoLectura {
+  id           String   @id @default(uuid()) @db.Uuid
+  registroId   String   @map("registro_anestesico_id") @db.Uuid
+  registro     RegistroAnestesico @relation(fields: [registroId], references: [id])
+  minuto       Int      // minutos desde el inicio del registro
+  hora         String?
+  taSistolica  Int?     @map("ta_sistolica")
+  taDiastolica Int?     @map("ta_diastolica")
+  fc           Int?
+  fr           Int?
+  temperatura  Decimal? @db.Decimal(4, 1)
+  spo2         Int?
+  etco2        String?
+  pvcPam       String?  @map("pvc_pam")
+  bis          String?
+  otros        String?
+
+  @@unique([registroId, minuto])
+  @@map("transanestesico_lectura")
+}
+
+model TransanestesicoFarmaco {
+  id           String @id @default(uuid()) @db.Uuid
+  registroId   String @map("registro_anestesico_id") @db.Uuid
+  registro     RegistroAnestesico @relation(fields: [registroId], references: [id])
+  orden        Int
+  nombre       String
+  dosis        String?
+  via          String?
+  aplicaciones Json?  // [{ minuto, cantidad }]
+
+  @@index([registroId])
+  @@map("transanestesico_farmaco")
+}
+
+// Hoja 19: recuperación anestésica (Aldrete, Ramsay, Bromage) + nota y plan post-anestésico.
+model NotaPostanestesica {
+  id             String   @id @default(uuid()) @db.Uuid
+  expedienteQxId String   @unique @map("expediente_quirurgico_id") @db.Uuid
+  expedienteQx   ExpedienteQuirurgico @relation(fields: [expedienteQxId], references: [id])
+  pacienteId     String   @map("paciente_id") @db.Uuid
+  paciente       Paciente @relation(fields: [pacienteId], references: [id])
+
+  aldrete Json?   // { "0": {actividad, respiracion, circulacion, conciencia, saturacion, total}, "5": {…} }
+  ramsay  Int?
+  bromage Int?
+  nota    String?
+
+  planOxigeno               String? @map("plan_oxigeno")
+  planSolucionesIV          String? @map("plan_soluciones_iv")
+  planMedicamentos          String? @map("plan_medicamentos")
+  planComponentesSanguineos String? @map("plan_componentes_sanguineos")
+  planManejoDolor           String? @map("plan_manejo_dolor")
+
+  motivoEgreso String?  @map("motivo_egreso")
+  pasaA        String?  @map("pasa_a")
+  fechaHora    DateTime @default(now()) @map("fecha_hora")
+
+  anestesiologoId      String     @map("anestesiologo_id") @db.Uuid
+  anestesiologoUsuario Usuario    @relation("anestesiologoPostanestesica", fields: [anestesiologoId], references: [id])
+  firmaAnestesiologo   String?    @map("firma_anestesiologo")
+  estado               EstadoNota @default(BORRADOR)
+  fechaFirma           DateTime?  @map("fecha_firma")
+
+  @@index([pacienteId])
+  @@map("nota_postanestesica")
 }

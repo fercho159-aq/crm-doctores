@@ -12,6 +12,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/admin/doctores", label: "Doctores" },
     { href: "/admin/usuarios", label: "Usuarios" },
     { href: "/admin/especialidades", label: "Especialidades" },
+    { href: "/admin/insumos", label: "Insumos y precios" },
     { href: "/admin/correos", label: "Correos" },
     { href: "/admin/bitacora", label: "Bitácora" },
     { href: "/admin/configuracion", label: "Configuración" },

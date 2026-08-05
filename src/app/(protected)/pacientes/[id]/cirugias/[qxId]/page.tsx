@@ -4,7 +4,7 @@ import { Badge, Card, CardHeader, CardBody, Button } from "@/components/ui";
 import { cargarExpediente } from "../../expediente";
 import { NotaPreForm, NotaPostForm, CitasQx } from "./Formularios";
 import { FormatosQx } from "./FormatosQx";
-import { generarNotaQuirurgica } from "@/actions/formatos";
+import { generarNotaQuirurgica, generarDescripcionQx } from "@/actions/formatos";
 
 export default async function QxDetalle({ params }: { params: Promise<{ id: string; qxId: string }> }) {
   const { id, qxId } = await params;
@@ -44,13 +44,22 @@ export default async function QxDetalle({ params }: { params: Promise<{ id: stri
               ? `recabado el ${qx.consentimientoFecha.toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" })}`
               : "pendiente — genérelo abajo con firma en tableta."}
           </p>
-          {(qx.notaPre || qx.notaPost) && (
-            <form action={generarNotaQuirurgica.bind(null, qx.id) as unknown as (fd: FormData) => Promise<void>}>
-              <Button type="submit" variant="secondary" size="sm">
-                Descargar PDF de notas quirúrgicas
-              </Button>
-            </form>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {(qx.notaPre || qx.notaPost) && (
+              <form action={generarNotaQuirurgica.bind(null, qx.id) as unknown as (fd: FormData) => Promise<void>}>
+                <Button type="submit" variant="secondary" size="sm">
+                  Descargar PDF de notas quirúrgicas
+                </Button>
+              </form>
+            )}
+            {qx.notaPost && (
+              <form action={generarDescripcionQx.bind(null, qx.id) as unknown as (fd: FormData) => Promise<void>}>
+                <Button type="submit" variant="secondary" size="sm">
+                  Descripción del procedimiento quirúrgico (PDF)
+                </Button>
+              </form>
+            )}
+          </div>
         </CardBody>
       </Card>
 

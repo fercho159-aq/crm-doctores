@@ -13,7 +13,7 @@ export default async function ConfiguracionPage() {
       <Card>
         <CardHeader
           title="Datos de MIT"
-          subtitle="Aparecen en el encabezado de recetas y formatos. El domicilio es obligatorio en la receta (RIS art. 28)."
+          subtitle="Aparecen en el encabezado de recetas y de los 20 formatos del expediente. El domicilio es obligatorio en la receta (RIS art. 28)."
         />
         <CardBody>
           <ConfigForm
@@ -22,6 +22,10 @@ export default async function ConfiguracionPage() {
               domicilio: config?.domicilio ?? "",
               telefono: config?.telefono ?? "",
               emailRemitente: config?.emailRemitente ?? "onboarding@resend.dev",
+              licenciaSanitaria: config?.licenciaSanitaria ?? "",
+              rfc: config?.rfc ?? "",
+              expedienteCofepris: config?.expedienteCofepris ?? "",
+              oficioCofepris: config?.oficioCofepris ?? "",
             }}
           />
         </CardBody>

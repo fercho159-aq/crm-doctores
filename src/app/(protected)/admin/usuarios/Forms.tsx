@@ -30,12 +30,26 @@ export function NuevaAnestesiologoForm() {
   return (
     <form action={formAction} className="space-y-3">
       <ErrorMsg>{state.error}</ErrorMsg>
-      {state.ok && <OkMsg>Usuario de anestesiología creado.</OkMsg>}
+      {state.ok && <OkMsg>Usuario de anestesiología creado. La rúbrica se carga desde Doctores.</OkMsg>}
       <Field label="Nombre completo" required>
-        <Input name="nombreCompleto" required />
+        <Input name="nombreCompleto" required placeholder="Dr. / Dra. Nombre Apellidos" />
       </Field>
       <Field label="Correo (login)" required>
         <Input name="email" type="email" required />
+      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Cédula profesional" required hint="Se imprime en las hojas de anestesiología.">
+          <Input name="cedulaProfesional" required />
+        </Field>
+        <Field label="Cédula de especialidad">
+          <Input name="cedulaEspecialidad" />
+        </Field>
+      </div>
+      <Field label="Institución que expidió el título" required>
+        <Input name="institucionTitulo" required placeholder="UNAM, IPN…" />
+      </Field>
+      <Field label="Teléfono">
+        <Input name="telefono" type="tel" />
       </Field>
       <Field label="Contraseña temporal" required hint="Mínimo 10 caracteres; se exige cambio al primer ingreso.">
         <Input name="passwordTemporal" required />

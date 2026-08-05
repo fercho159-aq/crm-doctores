@@ -6,7 +6,8 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireRole, AuthzError } from "@/lib/authz";
 import { audit } from "@/lib/audit";
-import { guardarFormatoPdf, edadDe, fechaLarga } from "@/lib/pdf";
+import { guardarFormatoPdf } from "@/lib/pdf";
+import { cargarEstablecimiento, pacientePdf, fmt, fmtFecha, fmtHora } from "@/lib/formatos";
 import {
   HistoriaClinicaPdf,
   NotaEvolucionPdf,
@@ -14,18 +15,20 @@ import {
   ConsentimientoQxPdf,
   ConsentimientoAnestesiaPdf,
   AutorizacionQxPdf,
-  type Establecimiento,
+  FichaIdentificacionPdf,
+  DescripcionQxPdf,
   type MedicoPdf,
-  type PacientePdf,
 } from "@/pdf/formatos";
 import type { ActionState } from "./auth";
-import type { Paciente } from "@prisma/client";
 
-const sexoLabel = (s: string) => (s === "M" ? "Masculino" : s === "F" ? "Femenino" : "Otro");
-const fmt = (d: Date) => d.toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: "America/Mexico_City" });
-const fmtFecha = (d: Date) => d.toLocaleDateString("es-MX", { dateStyle: "long", timeZone: "America/Mexico_City" });
-
-const firmaSchema = z.string().startsWith("data:image/png").max(700_000).optional().or(z.literal("").transform(() => undefined));
+// Un archivo "use server" sólo puede exportar funciones async: este esquema
+// permanece local al módulo.
+const firmaSchema = z
+  .string()
+  .startsWith("data:image/png")
+  .max(700_000)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
 
 async function contexto(pacienteId: string) {
   const user = await requireRole("DOCTOR", "ADMIN");
@@ -35,27 +38,9 @@ async function contexto(pacienteId: string) {
     });
     if (!asignacion) throw new AuthzError("No tiene asignación activa con este paciente.");
   }
-  const config = await db.configuracion.findUniqueOrThrow({ where: { id: 1 } });
+  const est = await cargarEstablecimiento();
   const paciente = await db.paciente.findUniqueOrThrow({ where: { id: pacienteId } });
-  const est: Establecimiento = {
-    razonSocial: config.razonSocial,
-    domicilio: config.domicilio,
-    telefono: config.telefono,
-    logotipo: config.logotipo,
-  };
   return { user, est, paciente };
-}
-
-function pacientePdf(p: Paciente): PacientePdf {
-  return {
-    nombre: `${p.nombre} ${p.apellidoPaterno} ${p.apellidoMaterno ?? ""}`.trim(),
-    expediente: p.numeroExpediente,
-    edad: edadDe(p.fechaNacimiento),
-    sexo: sexoLabel(p.sexo),
-    fechaNacimiento: p.fechaNacimiento.toLocaleDateString("es-MX", { timeZone: "UTC" }),
-    domicilio: [p.calle, p.colonia, p.municipio, p.estado, p.cp].filter(Boolean).join(", ") || null,
-    telefono: p.telefono,
-  };
 }
 
 async function registrar(user: { id: string; rol: string }, docId: string, pacienteId: string, tipo: string) {
@@ -465,4 +450,139 @@ export async function generarAutorizacionQx(qxId: string, _p: ActionState, fd: F
     subidoPorId: c.user.id,
   });
   await registrar(c.user, documentoId, c.paciente.id, "AUTORIZACION_QX");
+}
+
+// ── 7. Ficha de identificación (hoja oficial 2) ───────────────────────
+// La llena recepción con apoyo del paciente; firman paciente, médico y familiar.
+
+const fichaSchema = z.object({
+  diagnostico: z.string().optional(),
+  hora: z.string().optional(),
+  nombreResponsable: z.string().optional(),
+  parentescoResponsable: z.string().optional(),
+  domicilioResponsable: z.string().optional(),
+  telefonoResponsable: z.string().optional(),
+  coloniaResponsable: z.string().optional(),
+  cpResponsable: z.string().optional(),
+  firmaPaciente: firmaSchema,
+  firmaMedico: firmaSchema,
+  firmaFamiliar: firmaSchema,
+});
+
+export async function generarFichaIdentificacion(
+  pacienteId: string,
+  _p: ActionState,
+  fd: FormData,
+): Promise<ActionState | void> {
+  let ctx;
+  try {
+    ctx = await contexto(pacienteId);
+  } catch (e) {
+    if (e instanceof AuthzError) return { error: e.message };
+    throw e;
+  }
+  const parsed = fichaSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const d = parsed.data;
+  const p = ctx.paciente;
+
+  // Médico tratante: la asignación activa más reciente del paciente.
+  const asignacion = await db.asignacion.findFirst({
+    where: { pacienteId, estado: "ACTIVA" },
+    include: { doctor: { include: { usuario: true } }, especialidad: true },
+    orderBy: { fechaAsignacion: "desc" },
+  });
+  // Diagnóstico: el capturado en el formulario o el de la última hoja cerrada.
+  const hoja = await db.hojaPrimerLlenado.findFirst({
+    where: { pacienteId, estado: "CERRADA" },
+    orderBy: { version: "desc" },
+    select: { motivoConsulta: true },
+  });
+
+  const { documentoId } = await guardarFormatoPdf({
+    element: React.createElement(FichaIdentificacionPdf, {
+      d: {
+        est: ctx.est,
+        paciente: { ...pacientePdf(p), colonia: p.colonia, cp: p.cp, estadoCivil: p.estadoCivil },
+        diagnostico: d.diagnostico || hoja?.motivoConsulta || null,
+        hora: d.hora || fmtHora(new Date()),
+        responsable: {
+          nombre: d.nombreResponsable || p.contactoEmergenciaNombre,
+          parentesco: d.parentescoResponsable || p.contactoEmergenciaParentesco,
+          domicilio: d.domicilioResponsable,
+          telefono: d.telefonoResponsable || p.contactoEmergenciaTelefono,
+          colonia: d.coloniaResponsable,
+          cp: d.cpResponsable,
+        },
+        medico: asignacion
+          ? {
+              nombre: asignacion.doctor.usuario.nombreCompleto,
+              consultorio: asignacion.doctor.consultorio,
+              telefono: asignacion.doctor.telefono,
+            }
+          : null,
+        firmas: { paciente: d.firmaPaciente, medico: d.firmaMedico, familiar: d.firmaFamiliar },
+        fecha: fmt(new Date()),
+      },
+    }),
+    pacienteId,
+    tipo: "FICHA_IDENTIFICACION",
+    nombreArchivo: `Ficha-identificacion-${p.numeroExpediente}.pdf`,
+    subidoPorId: ctx.user.id,
+  });
+  await registrar(ctx.user, documentoId, pacienteId, "FICHA_IDENTIFICACION");
+}
+
+// ── 8. Descripción del procedimiento quirúrgico (hoja oficial 6) ───────
+// Reproduce las nueve secciones numeradas del formato impreso a partir de la
+// nota postoperatoria ya capturada.
+
+export async function generarDescripcionQx(qxId: string): Promise<ActionState | void> {
+  let c;
+  try {
+    c = await contextoQx(qxId);
+  } catch (e) {
+    if (e instanceof AuthzError) return { error: e.message };
+    throw e;
+  }
+  const post = c.qx.notaPost;
+  if (!post) return { error: "Capture la nota postoperatoria antes de generar la descripción del procedimiento." };
+
+  const anestesia = await db.registroAnestesico.findUnique({
+    where: { expedienteQxId: qxId },
+    include: { anestesiologoUsuario: { select: { nombreCompleto: true } } },
+  });
+
+  const { documentoId } = await guardarFormatoPdf({
+    element: React.createElement(DescripcionQxPdf, {
+      d: {
+        est: c.est,
+        paciente: pacientePdf(c.paciente),
+        medico: c.medico,
+        tecnica: post.descripcionTecnica,
+        hallazgos: post.hallazgos,
+        complicaciones: post.incidentesAccidentes,
+        incidentes: post.incidentesAccidentes,
+        estadoPostPlan: [post.estadoPostquirurgico, post.planManejo].filter(Boolean).join(" · ") || null,
+        pronostico: post.pronostico,
+        sangradoGasas: [post.cuantificacionSangrado, post.conteoGasas].filter(Boolean).join(" · ") || null,
+        patologia: post.envioPiezasPatologia,
+        equipo: {
+          cirujano: c.medico.nombre,
+          anestesiologo: anestesia?.anestesiologoUsuario.nombreCompleto ?? null,
+          // El resto del equipo va en el campo libre de la nota postoperatoria.
+          circulante: post.equipoQuirurgico,
+          primerAyudante: null,
+          instrumentista: null,
+          segundoAyudante: null,
+        },
+        fecha: fmt(new Date()),
+      },
+    }),
+    pacienteId: c.paciente.id,
+    tipo: "DESCRIPCION_QX",
+    nombreArchivo: `Descripcion-procedimiento-${c.paciente.numeroExpediente}.pdf`,
+    subidoPorId: c.user.id,
+  });
+  await registrar(c.user, documentoId, c.paciente.id, "DESCRIPCION_QX");
 }

@@ -23,6 +23,23 @@ export function ConfigForm({ inicial }: { inicial: Record<string, string> }) {
       <Field label="Correo remitente de recetas" required hint="Con dominio verificado en Resend (SPF/DKIM/DMARC) para no caer en spam.">
         <Input name="emailRemitente" type="email" defaultValue={inicial.emailRemitente} required />
       </Field>
+
+      <p className="pt-2 text-sm font-semibold text-slate-700">Datos que imprimen los formatos oficiales</p>
+      <Field label="Licencia sanitaria" hint="Sale en el encabezado de todos los formatos del expediente.">
+        <Input name="licenciaSanitaria" defaultValue={inicial.licenciaSanitaria} placeholder="19-AM-15-058-0006" />
+      </Field>
+      <Field label="RFC" hint="Aparece al pie de la ficha de identificación.">
+        <Input name="rfc" defaultValue={inicial.rfc} />
+      </Field>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Expediente COFEPRIS">
+          <Input name="expedienteCofepris" defaultValue={inicial.expedienteCofepris} placeholder="PFC.B.E. 7/005256-2024" />
+        </Field>
+        <Field label="Oficio COFEPRIS">
+          <Input name="oficioCofepris" defaultValue={inicial.oficioCofepris} placeholder="10615922" />
+        </Field>
+      </div>
+
       <SubmitButton>Guardar configuración</SubmitButton>
     </form>
   );

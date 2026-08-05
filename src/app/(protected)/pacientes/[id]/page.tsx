@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { Card, CardHeader, CardBody, Badge, Button, EmptyState } from "@/components/ui";
 import { cargarExpediente } from "./expediente";
 import { AltaForm } from "./AltaForm";
+import { FichaIdentificacionForm } from "./FichaIdentificacionForm";
 
 const ESTADO_ASIG: Record<string, { label: string; tone: "blue" | "green" | "slate" | "red" }> = {
   ACTIVA: { label: "Activa", tone: "blue" },
@@ -23,7 +24,8 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-2">
+      <div className="space-y-4 lg:col-span-2">
+      <Card>
         <CardHeader title="Episodios de atención" subtitle="Expediente único: cada especialidad con su propio ciclo de vida." />
         <CardBody>
           {paciente.asignaciones.length === 0 ? (
@@ -49,6 +51,16 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
           )}
         </CardBody>
       </Card>
+
+      <FichaIdentificacionForm
+        pacienteId={id}
+        responsable={{
+          nombre: paciente.contactoEmergenciaNombre ?? "",
+          parentesco: paciente.contactoEmergenciaParentesco ?? "",
+          telefono: paciente.contactoEmergenciaTelefono ?? "",
+        }}
+      />
+      </div>
 
       <div className="space-y-4">
         <Card>

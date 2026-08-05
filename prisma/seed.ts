@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { hash } from "@node-rs/argon2";
+import { CATALOGO_INSUMOS } from "../src/lib/catalogoInsumos";
 
 const prisma = new PrismaClient();
 
@@ -45,6 +46,18 @@ async function main() {
       telefono: "5528380715",
     },
   });
+
+  // Catálogo de insumos de las hojas de consumo (precio a capturar por administración).
+  let orden = 0;
+  for (const insumo of CATALOGO_INSUMOS) {
+    orden += 1;
+    await prisma.insumo.upsert({
+      where: { categoria_nombre: { categoria: insumo.categoria, nombre: insumo.nombre } },
+      update: { orden },
+      create: { ...insumo, orden },
+    });
+  }
+  console.log(`Catálogo de insumos: ${CATALOGO_INSUMOS.length} renglones.`);
 
   console.log("Seed completado. Admin: admin@medicaltower.mx");
 }

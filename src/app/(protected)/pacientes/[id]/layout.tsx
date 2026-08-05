@@ -14,7 +14,17 @@ export default async function ExpedienteLayout({
   const { id } = await params;
   const { paciente } = await cargarExpediente(id, { sinBitacora: true });
 
-  const [ultimaHoja, notasFirmadas, recetasEmitidas, qxRealizadas, qxTotal, docsTotal] = await Promise.all([
+  const [
+    ultimaHoja,
+    notasFirmadas,
+    recetasEmitidas,
+    qxRealizadas,
+    qxTotal,
+    docsTotal,
+    ordenesFirmadas,
+    prescripcionesFirmadas,
+    hojasConsumo,
+  ] = await Promise.all([
     db.hojaPrimerLlenado.findFirst({
       where: { pacienteId: id, estado: "CERRADA" },
       orderBy: { version: "desc" },
@@ -25,6 +35,9 @@ export default async function ExpedienteLayout({
     db.expedienteQuirurgico.count({ where: { pacienteId: id, estado: "REALIZADA" } }),
     db.expedienteQuirurgico.count({ where: { pacienteId: id } }),
     db.documento.count({ where: { pacienteId: id } }),
+    db.hojaOrdenes.count({ where: { pacienteId: id, estado: "FIRMADA" } }),
+    db.hojaPrescripcion.count({ where: { pacienteId: id, estado: "FIRMADA" } }),
+    db.hojaConsumo.count({ where: { pacienteId: id } }),
   ]);
 
   const activas = paciente.asignaciones.filter((a) => a.estado === "ACTIVA");
@@ -38,7 +51,10 @@ export default async function ExpedienteLayout({
     { href: `/pacientes/${id}/historia`, label: "Historia clínica", completado: !!ultimaHoja },
     { href: `/pacientes/${id}/notas`, label: "Consulta y notas", completado: notasFirmadas > 0 },
     { href: `/pacientes/${id}/recetas`, label: "Receta", completado: recetasEmitidas > 0, opcional: true },
+    { href: `/pacientes/${id}/prescripcion`, label: "Prescripción", completado: prescripcionesFirmadas > 0, opcional: true },
+    { href: `/pacientes/${id}/ordenes`, label: "Órdenes médicas", completado: ordenesFirmadas > 0, opcional: true },
     { href: `/pacientes/${id}/cirugias`, label: "Cirugía", completado: qxTotal > 0 && qxRealizadas === qxTotal, opcional: true },
+    { href: `/pacientes/${id}/consumo`, label: "Consumo", completado: hojasConsumo > 0, opcional: true },
     { href: `/pacientes/${id}/documentos`, label: "Documentos", completado: docsTotal > 0 },
   ];
 
