@@ -3,9 +3,12 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { login, hashPassword } from "@/lib/auth";
+import { login, hashPassword, getClientIp } from "@/lib/auth";
 import { audit } from "@/lib/audit";
 import type { ActionState } from "./auth";
+
+const LIMITE_REGISTROS_POR_IP = 3;
+const VENTANA_HORAS = 1;
 
 // Alta pública de médico independiente (modalidad BASIC): crea su propio workspace,
 // no depende de un Administrador. Reutiliza el mismo patrón transaccional que
@@ -30,6 +33,24 @@ const registroSchema = z.object({
 });
 
 export async function registrarDoctorBasic(_p: ActionState, fd: FormData): Promise<ActionState> {
+  // Honeypot: campo oculto para personas, invisible en el formulario real;
+  // los bots que rellenan todos los <input> lo detonan. Falla en silencio,
+  // como si hubiera tenido éxito, para no delatar la defensa.
+  if (String(fd.get("sitioWeb") ?? "").trim()) {
+    return { ok: true };
+  }
+
+  const ip = await getClientIp();
+  if (ip) {
+    const desde = new Date(Date.now() - VENTANA_HORAS * 3600_000);
+    const recientes = await db.bitacora.count({
+      where: { accion: "REGISTRO_BASIC", ipOrigen: ip, fechaHora: { gte: desde } },
+    });
+    if (recientes >= LIMITE_REGISTROS_POR_IP) {
+      return { error: "Demasiadas cuentas creadas desde esta conexión. Intente de nuevo más tarde." };
+    }
+  }
+
   const parsed = registroSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
@@ -78,7 +99,7 @@ export async function registrarDoctorBasic(_p: ActionState, fd: FormData): Promi
 
   await audit({
     usuarioId: usuario.id, rol: "DOCTOR", accion: "REGISTRO_BASIC", entidad: "workspace",
-    entidadId: workspace.id, datosDespues: { email, nombreCompleto: d.nombreCompleto },
+    entidadId: workspace.id, datosDespues: { email, nombreCompleto: d.nombreCompleto }, ipOrigen: ip,
   });
 
   const result = await login(email, d.password);

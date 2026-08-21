@@ -11,6 +11,12 @@ export function RegistroForm() {
     <form action={formAction} className="space-y-4">
       <ErrorMsg>{state.error}</ErrorMsg>
 
+      {/* Honeypot: invisible para personas, los bots que rellenan todo lo detonan. */}
+      <div className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="sitioWeb">Sitio web</label>
+        <input id="sitioWeb" name="sitioWeb" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <Field label="Nombre completo" required>
         <Input name="nombreCompleto" required placeholder="Dr(a). Nombre Apellido" />
       </Field>
