@@ -8,14 +8,18 @@ export default async function HojaPage({ params }: { params: Promise<{ pacienteI
   const user = await requireRole("ENFERMERIA", "ADMIN", "DOCTOR");
   const { pacienteId } = await params;
   const paciente = await db.paciente.findUnique({ where: { id: pacienteId } });
-  if (!paciente) notFound();
+  if (!paciente || paciente.workspaceId !== user.workspaceId) notFound();
 
   const hoja =
     (await db.hojaPrimerLlenado.findFirst({ where: { pacienteId, estado: "BORRADOR" }, orderBy: { version: "desc" } })) ??
     (await db.hojaPrimerLlenado.findFirst({ where: { pacienteId }, orderBy: { version: "desc" } }));
 
-  // Doctores y Admin: siempre lectura. Enfermería: lectura si ya está cerrada.
-  const soloLectura = user.rol !== "ENFERMERIA" || hoja?.estado === "CERRADA";
+  // Enfermería (CLINIC) o el propio Doctor (BASIC, sin enfermería) escriben mientras
+  // esté en borrador. Admin y Doctor de CLINIC: siempre lectura.
+  const puedeEscribir =
+    (user.rol === "ENFERMERIA" || (user.rol === "DOCTOR" && user.workspaceTipo === "BASIC")) &&
+    hoja?.estado !== "CERRADA";
+  const soloLectura = !puedeEscribir;
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">

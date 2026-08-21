@@ -5,9 +5,10 @@ import { Card, CardHeader, CardBody, Badge, Button } from "@/components/ui";
 import { NuevoDoctorForm, FirmaDoctorForm } from "./Forms";
 
 export default async function DoctoresPage() {
-  await requireRole("ADMIN");
+  const admin = await requireRole("ADMIN");
   const [doctores, especialidades] = await Promise.all([
     db.doctor.findMany({
+      where: { usuario: { workspaceId: admin.workspaceId } },
       include: { usuario: true, especialidades: { include: { especialidad: true } } },
       orderBy: { createdAt: "desc" },
     }),

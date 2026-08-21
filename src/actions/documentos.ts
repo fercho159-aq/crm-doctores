@@ -17,6 +17,8 @@ const TIPOS: TipoDocumento[] = ["CONSENTIMIENTO", "ESTUDIO", "OTRO"];
 export async function subirDocumento(pacienteId: string, _p: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireRole("DOCTOR", "ADMIN");
   try {
+    const paciente = await db.paciente.findUnique({ where: { id: pacienteId }, select: { workspaceId: true } });
+    if (!paciente || paciente.workspaceId !== user.workspaceId) throw new AuthzError("Paciente no encontrado.");
     // Doctor: solo con asignación activa. Admin: puede adjuntar documentación administrativa.
     if (user.rol === "DOCTOR") {
       const asignacion = await db.asignacion.findFirst({

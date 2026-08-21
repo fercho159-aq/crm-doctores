@@ -17,6 +17,7 @@ export default async function Disponibles({ searchParams }: { searchParams: Prom
         estado: "CERRADA",
         paciente: {
           activo: true,
+          workspaceId: user.workspaceId,
           ...(q
             ? {
                 OR: [

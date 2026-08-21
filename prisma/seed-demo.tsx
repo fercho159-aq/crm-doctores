@@ -17,6 +17,7 @@ const ARGON2 = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 
 async function main() {
   const admin = await prisma.usuario.findUniqueOrThrow({ where: { email: "admin@medicaltower.mx" } });
+  const workspace = await prisma.workspace.findFirstOrThrow({ where: { tipo: "CLINIC" } });
   const especialidad = await prisma.especialidad.findUniqueOrThrow({ where: { nombre: "Cirugía Estética" } });
   const config = await prisma.configuracion.findUniqueOrThrow({ where: { id: 1 } });
 
@@ -42,6 +43,7 @@ async function main() {
   if (!usuarioDoc) {
     usuarioDoc = await prisma.usuario.create({
       data: {
+        workspaceId: workspace.id,
         rol: "DOCTOR",
         email: "doctor.demo@medicaltower.mx",
         passwordHash: await hash("DoctorDemo2026!", ARGON2),
@@ -73,6 +75,7 @@ async function main() {
     where: { email: "enfermeria.demo@medicaltower.mx" },
     update: {},
     create: {
+      workspaceId: workspace.id,
       rol: "ENFERMERIA",
       email: "enfermeria.demo@medicaltower.mx",
       passwordHash: await hash("EnfermeriaDemo2026!", ARGON2),
@@ -91,6 +94,7 @@ async function main() {
     where: { email: "anestesiologo.demo@medicaltower.mx" },
     update: {},
     create: {
+      workspaceId: workspace.id,
       rol: "ANESTESIOLOGO",
       email: "anestesiologo.demo@medicaltower.mx",
       passwordHash: await hash("AnestesiaDemo2026!", ARGON2),
@@ -124,6 +128,7 @@ async function main() {
   const nPac = await prisma.paciente.count({ where: { numeroExpediente: { startsWith: `MIT-${year}-` } } });
   const paciente = await prisma.paciente.create({
     data: {
+      workspaceId: workspace.id,
       numeroExpediente: `MIT-${year}-${String(nPac + 1).padStart(5, "0")}`,
       nombre: "María Guadalupe",
       apellidoPaterno: "Ejemplo",

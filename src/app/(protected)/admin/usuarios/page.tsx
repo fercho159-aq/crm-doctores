@@ -13,7 +13,10 @@ const ROL: Record<string, string> = {
 
 export default async function UsuariosPage() {
   const admin = await requireRole("ADMIN");
-  const usuarios = await db.usuario.findMany({ orderBy: [{ rol: "asc" }, { nombreCompleto: "asc" }] });
+  const usuarios = await db.usuario.findMany({
+    where: { workspaceId: admin.workspaceId },
+    orderBy: [{ rol: "asc" }, { nombreCompleto: "asc" }],
+  });
 
   return (
     <div className="space-y-6">

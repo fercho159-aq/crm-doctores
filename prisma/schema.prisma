@@ -7,6 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────── Workspace (aislamiento multi-tenant) ───────────────────────────
+// Raíz de aislamiento: CLINIC = Medical Tower (institucional); BASIC = consultorio de un
+// médico independiente. Usuario y Paciente son las únicas entidades con workspaceId propio;
+// el resto de las tablas lo derivan por relación (asignación, paciente), igual que ya hacía
+// `assertAccesoPaciente` con la propiedad del recurso antes de esta migración.
+
+enum TipoWorkspace {
+  CLINIC
+  BASIC
+}
+
+model Workspace {
+  id        String        @id @default(uuid()) @db.Uuid
+  tipo      TipoWorkspace @default(CLINIC)
+  nombre    String
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  usuarios  Usuario[]
+  pacientes Paciente[]
+
+  @@map("workspace")
+}
+
 // ─────────────────────────── Seguridad y catálogos ───────────────────────────
 
 enum RolClave {
@@ -18,6 +41,8 @@ enum RolClave {
 
 model Usuario {
   id             String    @id @default(uuid()) @db.Uuid
+  workspaceId    String    @map("workspace_id") @db.Uuid
+  workspace      Workspace @relation(fields: [workspaceId], references: [id])
   rol            RolClave
   email          String    @unique
   passwordHash   String    @map("password_hash")
@@ -41,6 +66,7 @@ model Usuario {
   registrosAnestesicos       RegistroAnestesico[]      @relation("anestesiologoRegistro")
   notasPostanestesicas       NotaPostanestesica[]      @relation("anestesiologoPostanestesica")
 
+  @@index([workspaceId])
   @@map("usuario")
 }
 
@@ -77,6 +103,7 @@ model Doctor {
   institucionTitulo      String  @map("institucion_titulo")
   universidadEspecialidad String? @map("universidad_especialidad")
   consultorio            String?
+  domicilioConsultorio   String? @map("domicilio_consultorio") // domicilio completo: obligatorio en receta de médicos BASIC (RIS art. 28) cuando no hay Configuracion institucional
   telefono               String?
   firmaDigitalizada      String? @map("firma_digitalizada") // data-URL imagen rúbrica
   createdAt              DateTime @default(now()) @map("created_at")
@@ -101,6 +128,8 @@ model DoctorEspecialidad {
 
 model Paciente {
   id                String   @id @default(uuid()) @db.Uuid
+  workspaceId       String   @map("workspace_id") @db.Uuid
+  workspace         Workspace @relation(fields: [workspaceId], references: [id])
   numeroExpediente  String   @unique @map("numero_expediente")
   nombre            String
   apellidoPaterno   String   @map("apellido_paterno")
@@ -144,6 +173,7 @@ model Paciente {
 
   @@index([nombre, apellidoPaterno])
   @@index([curp])
+  @@index([workspaceId])
   @@map("paciente")
 }
 

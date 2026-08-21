@@ -148,7 +148,7 @@ export function RecetaPdf({ data }: { data: RecetaPdfData }) {
 
         <View style={s.footer} fixed>
           <Text style={s.aviso}>
-            Documento generado electrónicamente en el sistema MIT — Medical Tower. Folio {data.folio} · {data.fechaEmision}
+            Documento generado electrónicamente. Folio {data.folio} · {data.fechaEmision}
             {data.hashDocumento ? ` · SHA-256 ${data.hashDocumento.slice(0, 16)}…` : ""}
           </Text>
           <Text style={s.aviso}>

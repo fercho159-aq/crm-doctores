@@ -7,11 +7,15 @@ export default async function BitacoraPage({
 }: {
   searchParams: Promise<{ q?: string; accion?: string; fecha?: string }>;
 }) {
-  await requireRole("ADMIN");
+  const admin = await requireRole("ADMIN");
   const { q, accion, fecha } = await searchParams;
 
   const registros = await db.bitacora.findMany({
     where: {
+      usuario: {
+        workspaceId: admin.workspaceId,
+        ...(q ? { nombreCompleto: { contains: q, mode: "insensitive" } } : {}),
+      },
       ...(accion ? { accion } : {}),
       ...(fecha
         ? {
@@ -21,7 +25,6 @@ export default async function BitacoraPage({
             },
           }
         : {}),
-      ...(q ? { usuario: { nombreCompleto: { contains: q, mode: "insensitive" } } } : {}),
     },
     include: { usuario: true },
     orderBy: { fechaHora: "desc" },

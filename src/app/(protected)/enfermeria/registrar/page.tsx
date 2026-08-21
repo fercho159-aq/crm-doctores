@@ -1,8 +1,8 @@
-import { requireRole } from "@/lib/authz";
+import { requireCapturista } from "@/lib/authz";
 import { RegistrarPacienteForm } from "./RegistrarPacienteForm";
 
 export default async function RegistrarPage() {
-  await requireRole("ENFERMERIA", "ADMIN");
+  await requireCapturista();
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-center gap-3">

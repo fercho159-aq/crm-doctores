@@ -8,6 +8,56 @@ import { requireRole, assertAsignacionPropia, AuthzError } from "@/lib/authz";
 import { audit } from "@/lib/audit";
 import type { ActionState } from "./auth";
 
+// ── Mi perfil (autoservicio; imprescindible para el médico BASIC, que no tiene
+//    Administrador que lo dé de alta) ──────────────────────────────────────
+
+const perfilSchema = z.object({
+  cedulaProfesional: z.string().min(4, "Cédula profesional obligatoria (NOM-004)"),
+  cedulaEspecialidad: z.string().optional(),
+  institucionTitulo: z.string().min(3, "Institución del título obligatoria (aparece en la receta)"),
+  universidadEspecialidad: z.string().optional(),
+  consultorio: z.string().optional(),
+  domicilioConsultorio: z.string().optional(),
+  telefono: z.string().optional(),
+});
+
+export async function actualizarPerfilDoctor(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireRole("DOCTOR");
+  if (!user.doctorId) return { error: "Su cuenta no tiene perfil de doctor." };
+  const parsed = perfilSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const d = parsed.data;
+  await db.doctor.update({
+    where: { id: user.doctorId },
+    data: {
+      cedulaProfesional: d.cedulaProfesional,
+      cedulaEspecialidad: d.cedulaEspecialidad || null,
+      institucionTitulo: d.institucionTitulo,
+      universidadEspecialidad: d.universidadEspecialidad || null,
+      consultorio: d.consultorio || null,
+      domicilioConsultorio: d.domicilioConsultorio || null,
+      telefono: d.telefono || null,
+    },
+  });
+  await audit({ usuarioId: user.id, rol: user.rol, accion: "ACTUALIZAR", entidad: "doctor", entidadId: user.doctorId, datosDespues: { perfil: "actualizado" } });
+  revalidatePath("/mi-perfil");
+  return { ok: true };
+}
+
+const firmaPropiaSchema = z.object({ firma: z.string().startsWith("data:image/") });
+
+export async function guardarFirmaPropia(_p: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requireRole("DOCTOR");
+  if (!user.doctorId) return { error: "Su cuenta no tiene perfil de doctor." };
+  const parsed = firmaPropiaSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: "Imagen de firma inválida" };
+  if (parsed.data.firma.length > 500_000) return { error: "Imagen demasiado grande (máx ~350 KB)" };
+  await db.doctor.update({ where: { id: user.doctorId }, data: { firmaDigitalizada: parsed.data.firma } });
+  await audit({ usuarioId: user.id, rol: user.rol, accion: "ACTUALIZAR", entidad: "doctor", entidadId: user.doctorId, datosDespues: { firma: "actualizada" } });
+  revalidatePath("/mi-perfil");
+  return { ok: true };
+}
+
 // ── Tomar paciente ──────────────────────────────────────────────
 
 export async function tomarPaciente(_p: ActionState, fd: FormData): Promise<ActionState> {
@@ -21,6 +71,9 @@ export async function tomarPaciente(_p: ActionState, fd: FormData): Promise<Acti
     where: { doctorId_especialidadId: { doctorId: user.doctorId, especialidadId } },
   });
   if (!ejerce) return { error: "No tiene registrada esa especialidad." };
+
+  const paciente = await db.paciente.findUnique({ where: { id: pacienteId }, select: { workspaceId: true } });
+  if (!paciente || paciente.workspaceId !== user.workspaceId) return { error: "Paciente no encontrado." };
 
   const dup = await db.asignacion.findFirst({
     where: { pacienteId, especialidadId, doctorId: user.doctorId, estado: "ACTIVA" },

@@ -141,6 +141,10 @@ const USUARIOS: UsuarioPrueba[] = [
 ];
 
 async function main() {
+  const workspace =
+    (await prisma.workspace.findFirst({ where: { tipo: "CLINIC" } })) ??
+    (await prisma.workspace.create({ data: { tipo: "CLINIC", nombre: "MIT — Medical Tower" } }));
+
   const passwordHash = await hash(PASSWORD, ARGON2);
 
   const especialidades = await prisma.especialidad.findMany({ select: { id: true, nombre: true } });
@@ -165,6 +169,7 @@ async function main() {
         bloqueadoHasta: null,
       },
       create: {
+        workspaceId: workspace.id,
         rol: u.rol,
         email,
         passwordHash,

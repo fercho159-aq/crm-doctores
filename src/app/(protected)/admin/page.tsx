@@ -4,17 +4,23 @@ import { db } from "@/lib/db";
 import { Card, CardHeader, CardBody, StatCard, EmptyState } from "@/components/ui";
 
 export default async function AdminHome() {
-  await requireRole("ADMIN");
+  const user = await requireRole("ADMIN");
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
+  const wsPaciente = { asignacion: { paciente: { workspaceId: user.workspaceId } } };
   const [pacientes, consultasHoy, recetas, cirugias, correosFallidos, actividad] = await Promise.all([
-    db.paciente.count({ where: { activo: true } }),
-    db.notaEvolucion.count({ where: { fechaHora: { gte: hoy } } }),
-    db.receta.count({ where: { estado: "EMITIDA" } }),
-    db.expedienteQuirurgico.count(),
-    db.receta.count({ where: { estadoEnvio: "ERROR" } }),
-    db.bitacora.findMany({ orderBy: { fechaHora: "desc" }, take: 12, include: { usuario: true } }),
+    db.paciente.count({ where: { activo: true, workspaceId: user.workspaceId } }),
+    db.notaEvolucion.count({ where: { fechaHora: { gte: hoy }, ...wsPaciente } }),
+    db.receta.count({ where: { estado: "EMITIDA", ...wsPaciente } }),
+    db.expedienteQuirurgico.count({ where: { paciente: { workspaceId: user.workspaceId } } }),
+    db.receta.count({ where: { estadoEnvio: "ERROR", ...wsPaciente } }),
+    db.bitacora.findMany({
+      where: { usuario: { workspaceId: user.workspaceId } },
+      orderBy: { fechaHora: "desc" },
+      take: 12,
+      include: { usuario: true },
+    }),
   ]);
 
   return (

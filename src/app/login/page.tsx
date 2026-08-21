@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LoginForm } from "./LoginForm";
 
 export default function LoginPage() {
@@ -12,7 +13,10 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-slate-500">Expediente Clínico Electrónico</p>
         </div>
         <LoginForm />
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-4 text-center text-sm text-slate-500">
+          ¿Médico independiente? <Link href="/registro" className="text-blue-700 underline">Cree su consultorio aquí</Link>.
+        </p>
+        <p className="mt-4 text-center text-xs text-slate-400">
           Acceso restringido al personal autorizado. Toda actividad queda registrada en bitácora.
         </p>
       </div>

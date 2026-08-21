@@ -32,6 +32,8 @@ const firmaSchema = z
 
 async function contexto(pacienteId: string) {
   const user = await requireRole("DOCTOR", "ADMIN");
+  const paciente = await db.paciente.findUniqueOrThrow({ where: { id: pacienteId } });
+  if (paciente.workspaceId !== user.workspaceId) throw new AuthzError("Paciente no encontrado.");
   if (user.rol === "DOCTOR") {
     const asignacion = await db.asignacion.findFirst({
       where: { pacienteId, doctorId: user.doctorId ?? "", estado: "ACTIVA" },
@@ -39,7 +41,6 @@ async function contexto(pacienteId: string) {
     if (!asignacion) throw new AuthzError("No tiene asignación activa con este paciente.");
   }
   const est = await cargarEstablecimiento();
-  const paciente = await db.paciente.findUniqueOrThrow({ where: { id: pacienteId } });
   return { user, est, paciente };
 }
 

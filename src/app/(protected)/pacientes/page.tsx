@@ -9,7 +9,8 @@ export default async function PacientesPage({ searchParams }: { searchParams: Pr
 
   const where = {
     activo: true,
-    ...(user.rol === "DOCTOR" ? wherePacientesDeDoctor(user.doctorId!) : {}),
+    workspaceId: user.workspaceId,
+    ...(user.rol === "DOCTOR" ? wherePacientesDeDoctor(user.doctorId!, user.workspaceId) : {}),
     ...(q
       ? {
           OR: [

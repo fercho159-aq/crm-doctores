@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 import { hash, verify } from "@node-rs/argon2";
 import { db } from "./db";
 import { audit } from "./audit";
-import type { RolClave } from "@prisma/client";
+import type { RolClave, TipoWorkspace } from "@prisma/client";
 
 const SESSION_COOKIE = "mit_session";
 const SESSION_HOURS = 8;
@@ -21,6 +21,8 @@ export type SessionUser = {
   rol: RolClave;
   debeCambiarPassword: boolean;
   doctorId: string | null;
+  workspaceId: string;
+  workspaceTipo: TipoWorkspace;
 };
 
 export async function hashPassword(password: string) {
@@ -94,7 +96,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
   if (!sid) return null;
   const session = await db.session.findUnique({
     where: { id: sid },
-    include: { usuario: { include: { doctor: true } } },
+    include: { usuario: { include: { doctor: true, workspace: true } } },
   });
   if (!session || session.expiresAt < new Date() || !session.usuario.activo) return null;
 
@@ -114,6 +116,8 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     rol: u.rol,
     debeCambiarPassword: u.debeCambiarPassword,
     doctorId: u.doctor?.id ?? null,
+    workspaceId: u.workspaceId,
+    workspaceTipo: u.workspace.tipo,
   };
 });
 

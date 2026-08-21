@@ -23,11 +23,16 @@ async function main() {
     });
   }
 
+  const workspace =
+    (await prisma.workspace.findFirst({ where: { tipo: "CLINIC" } })) ??
+    (await prisma.workspace.create({ data: { tipo: "CLINIC", nombre: "MIT — Medical Tower" } }));
+
   const adminPass = process.env.SEED_ADMIN_PASSWORD ?? "CambiarAhora2026!";
   await prisma.usuario.upsert({
     where: { email: "admin@medicaltower.mx" },
     update: {},
     create: {
+      workspaceId: workspace.id,
       rol: "ADMIN",
       email: "admin@medicaltower.mx",
       passwordHash: await hash(adminPass, ARGON2_OPTS),

@@ -79,7 +79,7 @@ async function contextoQx(qxId: string, escritura: boolean) {
       asignacion: { include: { doctor: { include: { usuario: true } }, especialidad: true } },
     },
   });
-  if (!qx) throw new AuthzError("Expediente quirúrgico no encontrado.");
+  if (!qx || qx.paciente.workspaceId !== user.workspaceId) throw new AuthzError("Expediente quirúrgico no encontrado.");
   return { user, qx };
 }
 

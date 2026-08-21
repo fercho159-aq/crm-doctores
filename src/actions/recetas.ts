@@ -67,9 +67,25 @@ export async function emitirReceta(
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
 
-  const config = await db.configuracion.findUniqueOrThrow({ where: { id: 1 } });
-  if (!config.domicilio?.trim()) {
-    return { error: "Falta el domicilio del establecimiento en Configuración (obligatorio en la receta — RIS art. 28). Pida al administrador completarlo." };
+  // CLINIC: domicilio institucional único (Configuración, gestionada por el Administrador).
+  // BASIC: el médico no tiene Administrador — usa el domicilio de su propio consultorio.
+  let establecimiento: { razonSocial: string; domicilio: string; telefono: string; logotipo: string | null };
+  if (user.workspaceTipo === "BASIC") {
+    if (!doctor.domicilioConsultorio?.trim()) {
+      return { error: "Falta el domicilio de su consultorio (obligatorio en la receta — RIS art. 28). Complételo en Mi perfil." };
+    }
+    establecimiento = {
+      razonSocial: doctor.usuario.nombreCompleto,
+      domicilio: doctor.domicilioConsultorio,
+      telefono: doctor.telefono ?? "",
+      logotipo: null,
+    };
+  } else {
+    const config = await db.configuracion.findUniqueOrThrow({ where: { id: 1 } });
+    if (!config.domicilio?.trim()) {
+      return { error: "Falta el domicilio del establecimiento en Configuración (obligatorio en la receta — RIS art. 28). Pida al administrador completarlo." };
+    }
+    establecimiento = { razonSocial: config.razonSocial, domicilio: config.domicilio, telefono: config.telefono, logotipo: config.logotipo };
   }
   const paciente = asignacion.paciente;
   const ultimaHoja = await db.hojaPrimerLlenado.findFirst({
@@ -85,7 +101,7 @@ export async function emitirReceta(
     institucionTitulo: doctor.institucionTitulo,
     universidadEspecialidad: doctor.universidadEspecialidad,
     especialidad: asignacion.especialidad.nombre,
-    establecimiento: { razonSocial: config.razonSocial, domicilio: config.domicilio, telefono: config.telefono },
+    establecimiento,
   };
   const snapshotPaciente = {
     nombre: `${paciente.nombre} ${paciente.apellidoPaterno} ${paciente.apellidoMaterno ?? ""}`.trim(),
@@ -129,12 +145,7 @@ export async function emitirReceta(
     {
       folio: receta.folio,
       fechaEmision: fechaLarga(receta.fechaEmision),
-      establecimiento: {
-        razonSocial: config.razonSocial,
-        domicilio: config.domicilio,
-        telefono: config.telefono,
-        logotipo: config.logotipo,
-      },
+      establecimiento,
       medico: {
         nombre: doctor.usuario.nombreCompleto,
         especialidad: asignacion.especialidad.nombre,
@@ -198,7 +209,7 @@ export async function cancelarReceta(recetaId: string, _p: ActionState, fd: Form
 export async function reenviarReceta(recetaId: string, _p: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requireRole("DOCTOR", "ADMIN");
   const receta = await db.receta.findUnique({ where: { id: recetaId }, include: { asignacion: { include: { paciente: true } } } });
-  if (!receta) return { error: "Receta no encontrada." };
+  if (!receta || receta.asignacion.paciente.workspaceId !== user.workspaceId) return { error: "Receta no encontrada." };
   if (user.rol === "DOCTOR") {
     try {
       await assertAsignacionPropia(user, receta.asignacionId);

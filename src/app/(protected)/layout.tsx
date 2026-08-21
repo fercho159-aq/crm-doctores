@@ -21,6 +21,7 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/mi-consulta", label: "Mi consulta" },
     { href: "/mi-consulta/disponibles", label: "Pacientes disponibles" },
     { href: "/pacientes", label: "Mis pacientes" },
+    { href: "/mi-perfil", label: "Mi perfil" },
   ],
   ENFERMERIA: [
     { href: "/enfermeria", label: "Inicio" },
@@ -30,6 +31,16 @@ const NAV: Record<string, { href: string; label: string }[]> = {
     { href: "/anestesiologia", label: "Inicio" },
   ],
 };
+
+// Consultorio BASIC: sin enfermería, así que el propio doctor registra a sus
+// pacientes — sustituye el nav de DOCTOR en vez de sumarse a él, para no
+// exponerle módulos institucionales (CLINIC conserva NAV.DOCTOR sin cambios).
+const NAV_DOCTOR_BASIC: { href: string; label: string }[] = [
+  { href: "/mi-consulta", label: "Mi consulta" },
+  { href: "/enfermeria/registrar", label: "Nuevo paciente" },
+  { href: "/pacientes", label: "Mis pacientes" },
+  { href: "/mi-perfil", label: "Mi perfil" },
+];
 
 const ROL_LABEL: Record<string, string> = {
   ADMIN: "Administrador",
@@ -43,6 +54,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   if (!user) redirect("/login");
   if (user.debeCambiarPassword) redirect("/cambiar-password");
 
+  const nav = user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
+
   return (
     <div className="min-h-screen">
       <IdleLogout minutes={15} />
@@ -54,7 +67,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
               <span className="hidden sm:inline">MIT Medical Tower</span>
             </Link>
             <nav className="flex flex-wrap items-center gap-1">
-              {(NAV[user.rol] ?? []).map((item) => (
+              {nav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

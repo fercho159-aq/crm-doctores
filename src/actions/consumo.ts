@@ -30,6 +30,7 @@ async function contextoConsumo(pacienteId: string, escritura: boolean) {
     ? await requireRole("ENFERMERIA", "ADMIN", "DOCTOR")
     : await requireRole("ENFERMERIA", "ADMIN", "DOCTOR", "ANESTESIOLOGO");
   const paciente = await db.paciente.findUniqueOrThrow({ where: { id: pacienteId } });
+  if (paciente.workspaceId !== user.workspaceId) throw new AuthzError("Paciente no encontrado.");
   return { user, paciente };
 }
 
@@ -199,9 +200,9 @@ export async function cerrarHojaConsumo(hojaId: string): Promise<ActionState> {
   const user = await requireRole("ADMIN");
   const hoja = await db.hojaConsumo.findUnique({
     where: { id: hojaId },
-    include: { partidas: { select: { importe: true } } },
+    include: { partidas: { select: { importe: true } }, paciente: { select: { workspaceId: true } } },
   });
-  if (!hoja) return { error: "Hoja de consumo no encontrada." };
+  if (!hoja || hoja.paciente.workspaceId !== user.workspaceId) return { error: "Hoja de consumo no encontrada." };
   if (hoja.estado === "CERRADA") return { error: "La hoja ya está cerrada." };
   if (hoja.partidas.length === 0) return { error: "No se puede cerrar una hoja sin renglones." };
 

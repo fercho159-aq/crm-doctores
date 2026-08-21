@@ -44,6 +44,7 @@ async function contextoPdf(pacienteId: string, asignacionId: string) {
     cargarEstablecimiento(),
     db.paciente.findUniqueOrThrow({ where: { id: pacienteId } }),
   ]);
+  if (paciente.workspaceId !== user.workspaceId) throw new AuthzError("Paciente no encontrado.");
   const medico: MedicoPdf = {
     nombre: asignacion.doctor.usuario.nombreCompleto,
     cedulaProfesional: asignacion.doctor.cedulaProfesional,

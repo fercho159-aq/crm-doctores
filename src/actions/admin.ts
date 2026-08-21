@@ -61,6 +61,7 @@ export async function crearDoctor(_p: ActionState, fd: FormData): Promise<Action
   const doctor = await db.$transaction(async (tx) => {
     const usuario = await tx.usuario.create({
       data: {
+        workspaceId: user.workspaceId,
         rol: "DOCTOR",
         email: d.email.toLowerCase(),
         passwordHash: await hashPassword(d.passwordTemporal),
@@ -96,6 +97,8 @@ export async function guardarFirmaDoctor(_p: ActionState, fd: FormData): Promise
   const parsed = firmaSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: "Imagen de firma inválida" };
   if (parsed.data.firma.length > 500_000) return { error: "Imagen demasiado grande (máx ~350 KB)" };
+  const doctor = await db.doctor.findUnique({ where: { id: parsed.data.doctorId }, include: { usuario: true } });
+  if (!doctor || doctor.usuario.workspaceId !== user.workspaceId) return { error: "Doctor no encontrado." };
   await db.doctor.update({ where: { id: parsed.data.doctorId }, data: { firmaDigitalizada: parsed.data.firma } });
   await audit({ usuarioId: user.id, rol: user.rol, accion: "ACTUALIZAR", entidad: "doctor", entidadId: parsed.data.doctorId, datosDespues: { firma: "actualizada" } });
   revalidatePath("/admin/doctores");
@@ -118,6 +121,7 @@ export async function crearEnfermeria(_p: ActionState, fd: FormData): Promise<Ac
   if (existe) return { error: "Ya existe un usuario con ese correo" };
   const u = await db.usuario.create({
     data: {
+      workspaceId: user.workspaceId,
       rol: "ENFERMERIA",
       email: parsed.data.email.toLowerCase(),
       passwordHash: await hashPassword(parsed.data.passwordTemporal),
@@ -153,6 +157,7 @@ export async function crearAnestesiologo(_p: ActionState, fd: FormData): Promise
   // valoración preanestésica, el registro anestésico y la nota post-anestésica.
   const u = await db.usuario.create({
     data: {
+      workspaceId: user.workspaceId,
       rol: "ANESTESIOLOGO",
       email: d.email.toLowerCase(),
       passwordHash: await hashPassword(d.passwordTemporal),
@@ -180,6 +185,7 @@ export async function toggleUsuario(usuarioId: string) {
   const admin = await requireRole("ADMIN");
   if (usuarioId === admin.id) return;
   const u = await db.usuario.findUniqueOrThrow({ where: { id: usuarioId } });
+  if (u.workspaceId !== admin.workspaceId) return;
   await db.usuario.update({ where: { id: usuarioId }, data: { activo: !u.activo } });
   if (u.activo) await revokeSessions(usuarioId); // baja = revocar sesiones
   await audit({ usuarioId: admin.id, rol: admin.rol, accion: u.activo ? "DESACTIVAR" : "ACTIVAR", entidad: "usuario", entidadId: usuarioId });
@@ -196,6 +202,8 @@ export async function resetPassword(_p: ActionState, fd: FormData): Promise<Acti
   const admin = await requireRole("ADMIN");
   const parsed = resetSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const objetivo = await db.usuario.findUnique({ where: { id: parsed.data.usuarioId }, select: { workspaceId: true } });
+  if (!objetivo || objetivo.workspaceId !== admin.workspaceId) return { error: "Usuario no encontrado." };
   await db.usuario.update({
     where: { id: parsed.data.usuarioId },
     data: { passwordHash: await hashPassword(parsed.data.passwordTemporal), debeCambiarPassword: true, intentosFallidos: 0, bloqueadoHasta: null },

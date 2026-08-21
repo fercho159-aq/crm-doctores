@@ -19,6 +19,15 @@ export async function requireRole(...roles: RolClave[]): Promise<SessionUser> {
   return user;
 }
 
+// Quién puede capturar el primer llenado de un paciente: Enfermería y Admin en
+// CLINIC, o el propio Doctor cuando su workspace es BASIC (no tiene enfermería).
+export async function requireCapturista(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.rol === "ENFERMERIA" || user.rol === "ADMIN") return user;
+  if (user.rol === "DOCTOR" && user.workspaceTipo === "BASIC") return user;
+  redirect("/");
+}
+
 export class AuthzError extends Error {}
 
 export async function assertRole(user: SessionUser, ...roles: RolClave[]) {
@@ -26,8 +35,14 @@ export async function assertRole(user: SessionUser, ...roles: RolClave[]) {
 }
 
 // Doctor solo accede a expedientes de pacientes con asignación ACTIVA suya.
-// Admin: lectura global. Enfermería: sin acceso a expediente clínico.
+// Admin: lectura global — pero SOLO dentro de su propio workspace (una clínica no
+// debe poder leer el expediente de pacientes de un médico independiente ajeno, y
+// viceversa). Enfermería: sin acceso a expediente clínico.
 export async function assertAccesoPaciente(user: SessionUser, pacienteId: string, opts?: { escritura?: boolean }) {
+  const paciente = await db.paciente.findUnique({ where: { id: pacienteId }, select: { workspaceId: true } });
+  if (!paciente || paciente.workspaceId !== user.workspaceId) {
+    throw new AuthzError("Paciente no encontrado.");
+  }
   if (user.rol === "ADMIN") {
     if (opts?.escritura) throw new AuthzError("El administrador solo tiene acceso de lectura al expediente.");
     return;
@@ -40,7 +55,9 @@ export async function assertAccesoPaciente(user: SessionUser, pacienteId: string
   if (!asignacion) throw new AuthzError("No tiene asignación activa con este paciente.");
 }
 
-// La asignación pertenece al doctor en sesión y está activa (para escribir notas/recetas en ella).
+// La asignación pertenece al doctor en sesión, está activa, y el paciente es de su
+// mismo workspace (defensa en profundidad: hoy doctorId ya lo garantiza por
+// construcción, pero esto deja de ser cierto en cuanto exista más de un workspace).
 export async function assertAsignacionPropia(user: SessionUser, asignacionId: string) {
   if (user.rol !== "DOCTOR" || !user.doctorId) throw new AuthzError("Solo doctores pueden realizar esta acción.");
   const asignacion = await db.asignacion.findFirst({
@@ -48,10 +65,22 @@ export async function assertAsignacionPropia(user: SessionUser, asignacionId: st
     include: { paciente: true, especialidad: true, doctor: { include: { usuario: true } } },
   });
   if (!asignacion) throw new AuthzError("La asignación no es suya o ya no está activa.");
+  if (asignacion.paciente.workspaceId !== user.workspaceId) {
+    throw new AuthzError("Paciente no encontrado.");
+  }
   return asignacion;
 }
 
-// Repositorio central: filtro de pacientes visibles para un doctor.
-export function wherePacientesDeDoctor(doctorId: string) {
-  return { asignaciones: { some: { doctorId, estado: "ACTIVA" as const } } };
+// Verifica que un paciente pertenezca al workspace de quien actúa, sin exigir rol
+// ni asignación — para acciones de captura (hoja de primer llenado) donde lo único
+// que importa es que no se escriba en el expediente de otra organización.
+export async function assertPacienteEnWorkspace(user: SessionUser, pacienteId: string) {
+  const paciente = await db.paciente.findUnique({ where: { id: pacienteId }, select: { workspaceId: true } });
+  if (!paciente || paciente.workspaceId !== user.workspaceId) throw new AuthzError("Paciente no encontrado.");
+}
+
+// Repositorio central: filtro de pacientes visibles para un doctor, siempre acotado
+// a su workspace.
+export function wherePacientesDeDoctor(doctorId: string, workspaceId: string) {
+  return { workspaceId, asignaciones: { some: { doctorId, estado: "ACTIVA" as const } } };
 }

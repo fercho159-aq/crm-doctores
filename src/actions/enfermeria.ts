@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { requireRole } from "@/lib/authz";
+import { requireCapturista, assertPacienteEnWorkspace, AuthzError } from "@/lib/authz";
 import { siguienteFolio } from "@/lib/folio";
 import { audit } from "@/lib/audit";
 import type { ActionState } from "./auth";
@@ -40,7 +40,7 @@ const pacienteSchema = z.object({
 });
 
 export async function registrarPaciente(_p: ActionState, fd: FormData): Promise<ActionState & { pacienteId?: string }> {
-  const user = await requireRole("ENFERMERIA", "ADMIN");
+  const user = await requireCapturista();
   const parsed = pacienteSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const d = parsed.data;
@@ -51,9 +51,10 @@ export async function registrarPaciente(_p: ActionState, fd: FormData): Promise<
   }
 
   const paciente = await db.$transaction(async (tx) => {
-    const numeroExpediente = await siguienteFolio(tx, "paciente");
+    const numeroExpediente = await siguienteFolio(tx, "paciente", user.workspaceTipo);
     return tx.paciente.create({
       data: {
+        workspaceId: user.workspaceId,
         numeroExpediente,
         nombre: d.nombre,
         apellidoPaterno: d.apellidoPaterno,
@@ -136,7 +137,13 @@ async function upsertHoja(pacienteId: string, userId: string, data: z.infer<type
 }
 
 export async function guardarBorradorHoja(pacienteId: string, _p: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requireRole("ENFERMERIA", "ADMIN");
+  const user = await requireCapturista();
+  try {
+    await assertPacienteEnWorkspace(user, pacienteId);
+  } catch (e) {
+    if (e instanceof AuthzError) return { error: e.message };
+    throw e;
+  }
   const parsed = hojaSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: `${parsed.error.issues[0].path.join(".")}: ${parsed.error.issues[0].message}` };
   const hoja = await upsertHoja(pacienteId, user.id, parsed.data);
@@ -146,7 +153,13 @@ export async function guardarBorradorHoja(pacienteId: string, _p: ActionState, f
 }
 
 export async function cerrarHoja(pacienteId: string, _p: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requireRole("ENFERMERIA", "ADMIN");
+  const user = await requireCapturista();
+  try {
+    await assertPacienteEnWorkspace(user, pacienteId);
+  } catch (e) {
+    if (e instanceof AuthzError) return { error: e.message };
+    throw e;
+  }
   const parsed = hojaSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: `${parsed.error.issues[0].path.join(".")}: ${parsed.error.issues[0].message}` };
   const d = parsed.data;
@@ -169,13 +182,41 @@ export async function cerrarHoja(pacienteId: string, _p: ActionState, fd: FormDa
     data: { estado: "CERRADA", disponibleConsulta: true, fechaCierre: new Date() },
   });
   await audit({ usuarioId: user.id, rol: user.rol, accion: "CERRAR", entidad: "hoja_primer_llenado", entidadId: hoja.id, pacienteId });
+
+  // BASIC: el propio doctor la registró y la cerró — se autoasigna con su
+  // especialidad y entra directo al expediente, sin pasar por "disponibles"
+  // (esa cola es para el traspaso enfermería → doctor de una clínica).
+  if (user.rol === "DOCTOR" && user.doctorId) {
+    const propia = await db.doctorEspecialidad.findFirst({ where: { doctorId: user.doctorId } });
+    if (propia) {
+      const existente = await db.asignacion.findFirst({
+        where: { pacienteId, doctorId: user.doctorId, especialidadId: propia.especialidadId, estado: "ACTIVA" },
+      });
+      if (!existente) {
+        const asignacion = await db.asignacion.create({
+          data: { pacienteId, especialidadId: propia.especialidadId, doctorId: user.doctorId },
+        });
+        await audit({
+          usuarioId: user.id, rol: user.rol, accion: "TOMAR_PACIENTE", entidad: "asignacion",
+          entidadId: asignacion.id, pacienteId,
+        });
+      }
+    }
+    redirect(`/pacientes/${pacienteId}`);
+  }
   redirect("/enfermeria?disponible=1");
 }
 
 // ── Nueva visita (paciente existente): nueva versión de hoja precargada ─────────
 
 export async function nuevaVisita(pacienteId: string) {
-  const user = await requireRole("ENFERMERIA", "ADMIN");
+  const user = await requireCapturista();
+  try {
+    await assertPacienteEnWorkspace(user, pacienteId);
+  } catch (e) {
+    if (e instanceof AuthzError) notFound();
+    throw e;
+  }
   const anterior = await db.hojaPrimerLlenado.findFirst({
     where: { pacienteId, estado: "CERRADA" },
     orderBy: { version: "desc" },

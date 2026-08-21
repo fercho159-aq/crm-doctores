@@ -11,8 +11,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const { id } = await params;
-  const doc = await db.documento.findUnique({ where: { id } });
-  if (!doc) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  const doc = await db.documento.findUnique({ where: { id }, include: { paciente: { select: { workspaceId: true } } } });
+  if (!doc || doc.paciente.workspaceId !== user.workspaceId) {
+    return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+  }
 
   if (user.rol === "DOCTOR") {
     const asignacion = await db.asignacion.findFirst({

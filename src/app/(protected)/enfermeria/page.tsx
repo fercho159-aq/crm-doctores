@@ -22,6 +22,7 @@ export default async function EnfermeriaHome({ searchParams }: { searchParams: P
       ? db.paciente.findMany({
           where: {
             activo: true,
+            workspaceId: user.workspaceId,
             OR: [
               { nombre: { contains: q, mode: "insensitive" } },
               { apellidoPaterno: { contains: q, mode: "insensitive" } },

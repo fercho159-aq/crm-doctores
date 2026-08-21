@@ -6,8 +6,9 @@ import { Card, CardHeader, CardBody, Badge, EmptyState } from "@/components/ui";
 const TONE: Record<string, "amber" | "green" | "red"> = { PENDIENTE: "amber", ENVIADO: "green", FALLIDO: "red" };
 
 export default async function CorreosPage() {
-  await requireRole("ADMIN");
+  const admin = await requireRole("ADMIN");
   const cola = await db.emailQueue.findMany({
+    where: { receta: { asignacion: { paciente: { workspaceId: admin.workspaceId } } } },
     include: { receta: { include: { asignacion: { include: { paciente: true, doctor: { include: { usuario: true } } } } } } },
     orderBy: { createdAt: "desc" },
     take: 100,
