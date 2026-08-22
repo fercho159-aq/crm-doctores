@@ -92,6 +92,95 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Official DOF Document */}
+      <section className="px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">
+            Publicado en el Diario Oficial de la Federación
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+            No es opcional — es una norma oficial mexicana de observancia obligatoria
+          </p>
+
+          <div className="mt-10 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-lg">
+            {/* DOF Header */}
+            <div className="border-b-2 border-green-800 bg-gradient-to-r from-green-900 to-green-800 px-6 py-3">
+              <p className="text-xs font-bold tracking-wide text-white">
+                NORMA Oficial Mexicana NOM-004-SSA3-2012, Del expediente clínico.
+              </p>
+            </div>
+            <div className="border-b border-slate-200 bg-slate-50 px-6 py-2">
+              <p className="text-xs font-semibold text-green-900">
+                Al margen un sello con el Escudo Nacional, que dice: Estados Unidos Mexicanos.- Secretaría de Salud.
+              </p>
+            </div>
+
+            {/* DOF Content */}
+            <div className="px-6 py-6 font-serif text-sm leading-relaxed text-slate-700">
+              <p className="text-justify">
+                GERMÁN ENRIQUE FAJARDO DOLCI, Subsecretario de Integración y Desarrollo del Sector Salud y
+                Presidente del Comité Consultivo Nacional de Normalización de Innovación, Desarrollo, Tecnologías
+                e Información en Salud, con fundamento en lo dispuesto por los artículos 39 de la Ley Orgánica de
+                la Administración Pública Federal; 4o. de la Ley Federal de Procedimiento Administrativo...
+              </p>
+
+              <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-slate-900">
+                CONSIDERANDO
+              </p>
+
+              <p className="mt-4 text-justify">
+                Que con fecha 5 de octubre de 2010, fue publicado en el Diario Oficial de la Federación el
+                Proyecto de Modificación de esta norma, en cumplimiento a la aprobación del mismo por parte del
+                Comité Consultivo Nacional de Normalización de Innovación, Desarrollo, Tecnologías e Información en Salud...
+              </p>
+
+              <p className="mt-4 text-center text-xs font-bold uppercase tracking-widest text-slate-900">
+                NORMA OFICIAL MEXICANA NOM-004-SSA3-2012, DEL EXPEDIENTE CLÍNICO
+              </p>
+              <p className="mt-1 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
+                PREFACIO
+              </p>
+
+              <p className="mt-4 text-xs text-slate-500">En la elaboración de esta norma participaron:</p>
+              <div className="mt-2 columns-1 gap-8 text-xs text-slate-500 sm:columns-2">
+                <p>CONSEJO DE SALUBRIDAD GENERAL</p>
+                <p>SECRETARÍA DE SALUD</p>
+                <p>Subsecretaría de Integración y Desarrollo del Sector Salud</p>
+                <p>Subsecretaría de Prevención y Promoción de la Salud</p>
+                <p>Dirección General de Calidad y Educación en Salud</p>
+                <p>Dirección General de Epidemiología</p>
+                <p>Dirección General de Información en Salud</p>
+                <p>Instituto Nacional de Cancerología</p>
+                <p>Instituto Nacional de Cardiología Ignacio Chávez</p>
+                <p>Instituto Nacional de Pediatría</p>
+                <p>Hospital General de México, O.D.</p>
+                <p>Hospital Infantil de México Federico Gómez</p>
+              </div>
+            </div>
+
+            {/* Fade overlay */}
+            <div className="relative">
+              <div className="absolute inset-x-0 -top-16 h-16 bg-gradient-to-t from-white to-transparent" />
+              <div className="border-t border-slate-200 bg-slate-50 px-6 py-4 text-center">
+                <a
+                  href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5272787"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition hover:text-blue-800"
+                >
+                  <span>Leer norma completa en el DOF</span>
+                  <span>→</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-6 text-center text-sm text-slate-400">
+            Fuente: Diario Oficial de la Federación — dof.gob.mx
+          </p>
+        </div>
+      </section>
+
       {/* What NovaMed does */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
