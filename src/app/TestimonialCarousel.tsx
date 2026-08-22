@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 const TESTIMONIALS = [
   {
     stars: 5,
-    text: "Llevaba años con expedientes en papel y siempre tenía miedo de una inspección. Con NovaMed en dos días ya tenía todo digitalizado. Muy intuitivo.",
+    text: "Llevaba años con expedientes en papel y siempre tenía miedo de una inspección. Con NovaMedics en dos días ya tenía todo digitalizado. Muy intuitivo.",
     name: "Dr. Alejandro Ruiz M.",
     specialty: "Traumatología y Ortopedia",
     location: "CDMX",

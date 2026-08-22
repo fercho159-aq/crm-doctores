@@ -23,7 +23,7 @@ export function LandingNav() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-700 text-base font-bold text-white">
               N
             </div>
-            <span className="text-lg font-bold text-slate-900">NovaMed</span>
+            <span className="text-lg font-bold text-slate-900">NovaMedics</span>
           </Link>
 
           {/* Desktop nav */}

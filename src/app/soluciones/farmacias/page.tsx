@@ -10,7 +10,7 @@ export default function FarmaciasPage() {
         <div className="mx-auto max-w-lg text-center">
           <div className="text-6xl">💊</div>
           <h1 className="mt-6 text-3xl font-bold text-slate-900">
-            NovaMed para Farmacias
+            NovaMedics para Farmacias
           </h1>
           <p className="mt-4 text-lg text-slate-500">
             Control de inventario, recetas surtidas y gestión de punto de venta para farmacias.

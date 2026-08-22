@@ -150,7 +150,7 @@ export function PricingTabs() {
         <div className="mx-auto mt-8 max-w-lg rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <div className="text-5xl">{solution.icon}</div>
           <h3 className="mt-4 text-xl font-bold text-slate-900">
-            NovaMed para {solution.label}
+            NovaMedics para {solution.label}
           </h3>
           <p className="mt-2 text-slate-500">
             Estamos desarrollando la solución para {solution.label.toLowerCase()}.

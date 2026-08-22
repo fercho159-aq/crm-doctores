@@ -9,7 +9,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-700 text-2xl font-bold text-white">
             N
           </div>
-          <h1 className="text-xl font-bold text-slate-900">NovaMed</h1>
+          <h1 className="text-xl font-bold text-slate-900">NovaMedics</h1>
           <p className="mt-1 text-sm text-slate-500">Expediente Clínico Electrónico</p>
         </div>
         <LoginForm />

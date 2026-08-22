@@ -20,7 +20,7 @@ export default function LandingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-blue-100/80">
             La Secretaría de Salud exige a <strong className="text-white">todo consultorio, clínica y hospital</strong> llevar
-            expediente clínico conforme a la norma. NovaMed te permite cumplir desde el primer paciente
+            expediente clínico conforme a la norma. NovaMedics te permite cumplir desde el primer paciente
             — sin papeleo, sin riesgo de sanciones.
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -56,12 +56,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Why NovaMed — visual feature section */}
+      {/* Why NovaMedics — visual feature section */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
             <p className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-              ¿Por qué NovaMed?
+              ¿Por qué NovaMedics?
             </p>
             <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
               Todo lo que necesitas para cumplir la norma
@@ -198,7 +198,7 @@ export default function LandingPage() {
             Lo que dicen los doctores
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-blue-200/70">
-            Médicos que ya digitalizaron su consultorio con NovaMed
+            Médicos que ya digitalizaron su consultorio con NovaMedics
           </p>
           <div className="mt-12">
             <TestimonialCarousel />
@@ -209,7 +209,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white px-6 py-8">
         <div className="mx-auto max-w-5xl text-center text-sm text-slate-400">
-          <p className="font-medium text-slate-600">NovaMed — Expediente Clínico Electrónico</p>
+          <p className="font-medium text-slate-600">NovaMedics — Expediente Clínico Electrónico</p>
           <p className="mt-1">Hecho en México por MAW Soluciones</p>
           <p className="mt-3 text-xs">
             Conforme a la NOM-004-SSA3-2012, Ley General de Salud y LFPDPPP.
