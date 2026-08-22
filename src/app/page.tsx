@@ -76,27 +76,35 @@ export default function LandingPage() {
           </div>
 
           {/* COFEPRIS Video */}
-          <div className="mt-14 flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10">
-            <div className="w-full max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 shadow-md">
-              <iframe
-                src="https://www.youtube.com/embed/CrnrU4wFhIY"
-                title="COFEPRIS - Expediente Clínico Electrónico"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="aspect-[9/16] w-full"
-              />
-            </div>
-            <div className="max-w-sm text-center sm:text-left">
-              <p className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-                📺 Video informativo
-              </p>
-              <h3 className="mt-3 text-xl font-bold text-slate-900">
-                COFEPRIS y el expediente clínico
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                La autoridad sanitaria ya exige el expediente clínico electrónico.
-                Conoce por qué es obligatorio y cómo NovaMed te ayuda a cumplir desde hoy.
-              </p>
+          <div className="mt-14 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+            <div className="grid items-center sm:grid-cols-[1fr_2fr]">
+              <div className="aspect-[9/16] w-full sm:aspect-auto sm:h-full">
+                <iframe
+                  src="https://www.youtube.com/embed/CrnrU4wFhIY"
+                  title="COFEPRIS - Expediente Clínico Electrónico"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              </div>
+              <div className="p-6 sm:p-8">
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                  📺 Video informativo
+                </p>
+                <h3 className="mt-3 text-xl font-bold text-slate-900">
+                  COFEPRIS y el expediente clínico
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                  La autoridad sanitaria ya exige el expediente clínico electrónico.
+                  Conoce por qué es obligatorio y cómo NovaMed te ayuda a cumplir desde hoy.
+                </p>
+                <Link
+                  href="/registro"
+                  className="mt-4 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
+                >
+                  Comenzar gratis
+                </Link>
+              </div>
             </div>
           </div>
 
