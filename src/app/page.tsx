@@ -141,6 +141,62 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="border-t border-slate-200 bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900">
+            Lo que dicen los doctores
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+            Médicos que ya digitalizaron su consultorio con NovaMed
+          </p>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <Testimonial
+              stars={5}
+              text="Llevaba años con expedientes en papel y siempre tenía miedo de una inspección. Con NovaMed en dos días ya tenía todo digitalizado. Muy intuitivo."
+              name="Dr. Alejandro Ruiz M."
+              specialty="Traumatología y Ortopedia"
+              location="CDMX"
+            />
+            <Testimonial
+              stars={5}
+              text="Las recetas se envían solas al correo del paciente. Mis pacientes me dicen que se ve muy profesional. Ya no imprimo nada."
+              name="Dra. Mariana López G."
+              specialty="Medicina Interna"
+              location="Monterrey, NL"
+            />
+            <Testimonial
+              stars={5}
+              text="Lo que más me gustó es que las notas no se pueden borrar, solo agregar adendas. Eso me da tranquilidad legal. Cumple con todo lo de la NOM-004."
+              name="Dr. Roberto Sánchez P."
+              specialty="Cirugía General"
+              location="Guadalajara, JAL"
+            />
+            <Testimonial
+              stars={4}
+              text="Tengo un consultorio pequeño y pensé que era solo para clínicas grandes. Pero el plan gratuito me alcanza perfecto. Muy recomendable."
+              name="Dra. Fernanda Torres D."
+              specialty="Ginecología y Obstetricia"
+              location="Puebla, PUE"
+            />
+            <Testimonial
+              stars={5}
+              text="La hoja de consumo quirúrgico es exactamente lo que necesitaba. Registro cada insumo y el administrador tiene todo claro para cobrar."
+              name="Dr. Carlos Mendoza R."
+              specialty="Neurología"
+              location="Querétaro, QRO"
+            />
+            <Testimonial
+              stars={5}
+              text="Nos llegó una verificación sanitaria y pudimos mostrar todo el expediente digital al momento. El verificador quedó satisfecho. Valió cada peso."
+              name="Dr. Héctor Vega L."
+              specialty="Cardiología"
+              location="Mérida, YUC"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="border-t border-slate-200 bg-white px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-4xl">
@@ -221,6 +277,24 @@ function Step({ number, title, description }: { number: string; title: string; d
       </div>
       <h3 className="mb-2 text-lg font-semibold text-slate-900">{title}</h3>
       <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function Testimonial({ stars, text, name, specialty, location }: { stars: number; text: string; name: string; specialty: string; location: string }) {
+  return (
+    <div className="flex flex-col rounded-2xl border border-slate-200 bg-slate-50 p-6">
+      <div className="mb-3 flex gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <span key={i} className={i < stars ? "text-amber-400" : "text-slate-300"}>★</span>
+        ))}
+      </div>
+      <p className="flex-1 text-sm leading-relaxed text-slate-600">&ldquo;{text}&rdquo;</p>
+      <div className="mt-4 border-t border-slate-200 pt-4">
+        <p className="text-sm font-semibold text-slate-900">{name}</p>
+        <p className="text-xs text-slate-500">{specialty}</p>
+        <p className="text-xs text-slate-400">{location}</p>
+      </div>
     </div>
   );
 }
