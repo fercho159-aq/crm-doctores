@@ -223,6 +223,88 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className="border-t border-slate-200 bg-slate-50 px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">
+            Planes simples, sin letras chiquitas
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+            Empieza gratis y escala cuando tu consultorio lo necesite
+          </p>
+
+          <div className="mt-12 grid gap-8 sm:grid-cols-2">
+            {/* Plan Gratuito */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-8">
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-slate-900">Consultorio</h3>
+                <p className="mt-1 text-sm text-slate-500">Para médicos independientes</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-slate-900">$0</span>
+                  <span className="text-sm text-slate-500"> /mes</span>
+                </div>
+                <p className="mt-1 text-xs text-emerald-600 font-medium">Gratis para siempre</p>
+              </div>
+              <Link
+                href="/registro"
+                className="block w-full rounded-xl border border-blue-700 py-3 text-center text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+              >
+                Comenzar gratis
+              </Link>
+              <ul className="mt-8 space-y-3">
+                <PlanFeature included text="Historia clínica completa (NOM-004)" />
+                <PlanFeature included text="Notas de evolución inmutables" />
+                <PlanFeature included text="Recetas digitales en PDF" />
+                <PlanFeature included text="Envío de receta por correo al paciente" />
+                <PlanFeature included text="Gestión de pacientes" />
+                <PlanFeature included text="1 usuario (doctor)" />
+                <PlanFeature included={false} text="Expediente quirúrgico (pre y postoperatorio)" />
+                <PlanFeature included={false} text="Hojas de consumo e insumos" />
+                <PlanFeature included={false} text="Alertas automáticas por correo" />
+                <PlanFeature included={false} text="Múltiples usuarios y roles" />
+                <PlanFeature included={false} text="Panel administrativo" />
+                <PlanFeature included={false} text="Bitácora de auditoría" />
+              </ul>
+            </div>
+
+            {/* Plan Pro */}
+            <div className="relative rounded-2xl border-2 border-blue-700 bg-white p-8 shadow-lg">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-blue-700 px-4 py-1 text-xs font-semibold text-white">
+                Más popular
+              </div>
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-slate-900">Clínica Pro</h3>
+                <p className="mt-1 text-sm text-slate-500">Para clínicas y hospitales</p>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-slate-900">$4,500</span>
+                  <span className="text-sm text-slate-500"> MXN/mes</span>
+                </div>
+                <p className="mt-1 text-xs text-slate-400">Factura incluida</p>
+              </div>
+              <Link
+                href="/registro"
+                className="block w-full rounded-xl bg-blue-700 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-800"
+              >
+                Solicitar demo
+              </Link>
+              <ul className="mt-8 space-y-3">
+                <PlanFeature included text="Todo lo del plan Consultorio" />
+                <PlanFeature included text="Expediente quirúrgico completo" />
+                <PlanFeature included text="Notas preoperatorias (NOM-004, 8.5)" />
+                <PlanFeature included text="Notas postoperatorias (NOM-004, 8.8)" />
+                <PlanFeature included text="Hojas de consumo e insumos con precios" />
+                <PlanFeature included text="Alertas automáticas por correo a paciente y doctor" />
+                <PlanFeature included text="Usuarios ilimitados (doctores, enfermería, admin)" />
+                <PlanFeature included text="Panel administrativo completo" />
+                <PlanFeature included text="Bitácora de auditoría" />
+                <PlanFeature included text="Respaldos cifrados automáticos" />
+                <PlanFeature included text="Soporte prioritario" />
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-gradient-to-r from-blue-800 to-blue-900 px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
@@ -296,6 +378,19 @@ function Testimonial({ stars, text, name, specialty, location }: { stars: number
         <p className="text-xs text-slate-400">{location}</p>
       </div>
     </div>
+  );
+}
+
+function PlanFeature({ included, text }: { included: boolean; text: string }) {
+  return (
+    <li className={`flex items-start gap-2.5 text-sm ${included ? "text-slate-700" : "text-slate-400"}`}>
+      {included ? (
+        <span className="mt-0.5 text-emerald-500">✓</span>
+      ) : (
+        <span className="mt-0.5 text-slate-300">✕</span>
+      )}
+      <span className={included ? "" : "line-through"}>{text}</span>
+    </li>
   );
 }
 
