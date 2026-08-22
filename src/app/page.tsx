@@ -37,6 +37,22 @@ export default function LandingPage() {
               Ya tengo cuenta
             </Link>
           </div>
+
+          {/* Trust strip */}
+          <div className="mx-auto mt-14 flex max-w-2xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/10 pt-8">
+            <div className="flex items-center gap-2 text-sm text-blue-200/70">
+              <span className="text-lg">🏥</span> Clínicas y consultorios
+            </div>
+            <div className="flex items-center gap-2 text-sm text-blue-200/70">
+              <span className="text-lg">🔒</span> Datos cifrados
+            </div>
+            <div className="flex items-center gap-2 text-sm text-blue-200/70">
+              <span className="text-lg">📋</span> NOM-004 compliant
+            </div>
+            <div className="flex items-center gap-2 text-sm text-blue-200/70">
+              <span className="text-lg">🇲🇽</span> Hecho en México
+            </div>
+          </div>
         </div>
       </section>
 
@@ -55,45 +71,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* NOM-004 + Video */}
+      {/* Why NovaMed — visual feature section */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
-          {/* DOF compact excerpt */}
-          <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-md">
-            <div className="bg-gradient-to-r from-green-900 to-green-800 px-5 py-2.5">
-              <p className="text-xs font-bold tracking-wide text-white">
-                NORMA Oficial Mexicana NOM-004-SSA3-2012, Del expediente clínico
-              </p>
-            </div>
-            <div className="px-5 py-4 font-serif text-sm leading-relaxed text-slate-600">
-              <p className="text-justify">
-                Establece los criterios científicos, éticos y administrativos <strong className="text-slate-900">obligatorios</strong> para
-                la elaboración, uso y conservación del expediente clínico. Aplica a todos los establecimientos
-                de atención médica de los sectores <strong className="text-slate-900">público, social y privado</strong>.
-                Su incumplimiento puede derivar en sanciones, multas e incluso clausura.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs font-medium text-amber-700">
-                <span>✓ Conservación mínima 5 años</span>
-                <span>✓ Obligatorio para todo personal de salud</span>
-                <span>✓ Datos confidenciales del paciente</span>
-              </div>
-            </div>
-            <div className="border-t border-slate-200 bg-slate-50 px-5 py-2.5 text-center">
-              <a
-                href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5272787"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-semibold text-blue-700 hover:text-blue-800"
-              >
-                Leer norma completa en el DOF →
-              </a>
-            </div>
+          <div className="text-center">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+              ¿Por qué NovaMed?
+            </p>
+            <h2 className="mt-4 text-3xl font-bold text-slate-900 sm:text-4xl">
+              Todo lo que necesitas para cumplir la norma
+            </h2>
           </div>
 
-          {/* COFEPRIS Video */}
-          <div className="mt-14 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
-            <div className="grid items-center sm:grid-cols-[1fr_2fr]">
-              <div className="aspect-[9/16] w-full sm:aspect-auto sm:h-full">
+          {/* Bento grid */}
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Big card — Video */}
+            <div className="row-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:col-span-1">
+              <div className="aspect-[9/16] w-full">
                 <iframe
                   src="https://www.youtube.com/embed/CrnrU4wFhIY"
                   title="COFEPRIS - Expediente Clínico Electrónico"
@@ -102,33 +96,65 @@ export default function LandingPage() {
                   className="h-full w-full"
                 />
               </div>
-              <div className="p-6 sm:p-8">
-                <p className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
-                  📺 Video informativo
-                </p>
-                <h3 className="mt-3 text-xl font-bold text-slate-900">
-                  COFEPRIS y el expediente clínico
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  La autoridad sanitaria ya exige el expediente clínico electrónico.
-                  NovaMed cubre todo lo que la norma pide:
-                </p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
-                  <li className="flex items-start gap-2"><span className="text-blue-600">📋</span> Historia clínica completa (NOM-004, 6.1)</li>
-                  <li className="flex items-start gap-2"><span className="text-blue-600">📝</span> Notas de evolución inmutables</li>
-                  <li className="flex items-start gap-2"><span className="text-blue-600">💊</span> Recetas digitales en PDF</li>
-                  <li className="flex items-start gap-2"><span className="text-blue-600">🏥</span> Expediente quirúrgico (pre y postoperatorio)</li>
-                  <li className="flex items-start gap-2"><span className="text-blue-600">🔒</span> Seguridad por roles y bitácora</li>
-                  <li className="flex items-start gap-2"><span className="text-blue-600">📦</span> Respaldos cifrados por 5 años</li>
-                </ul>
-                <Link
-                  href="/registro"
-                  className="mt-5 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
-                >
-                  Comenzar gratis
-                </Link>
+              <div className="p-4 text-center">
+                <p className="text-xs font-medium text-slate-400">📺 Video informativo — COFEPRIS</p>
               </div>
             </div>
+
+            {/* Feature cards */}
+            <BentoCard
+              icon="📋"
+              color="bg-blue-100"
+              title="Historia clínica digital"
+              description="Ficha de identificación, antecedentes, exploración física y diagnóstico — NOM-004, sección 6.1."
+            />
+            <BentoCard
+              icon="📝"
+              color="bg-indigo-100"
+              title="Notas inmutables"
+              description="Una vez firmadas no se borran. Solo adendas, como exige la norma. Protección legal total."
+            />
+            <BentoCard
+              icon="💊"
+              color="bg-rose-100"
+              title="Recetas en PDF"
+              description="Con cédula profesional, dosis, vía de administración. Se envían al correo del paciente automáticamente."
+            />
+            <BentoCard
+              icon="🏥"
+              color="bg-teal-100"
+              title="Expediente quirúrgico"
+              description="Notas pre (8.5) y postoperatorias (8.8). Hojas de consumo e insumos por procedimiento."
+            />
+
+            {/* Wide card — NOM */}
+            <div className="rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 to-white p-6 sm:col-span-2 lg:col-span-1">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
+                ⚖️
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900">NOM-004-SSA3-2012</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                Publicada en el Diario Oficial de la Federación.
+                Aplica a <strong className="text-slate-700">todo sector público, social y privado</strong>.
+                Multas y clausura por incumplimiento.
+              </p>
+              <a
+                href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5272787"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-green-700 hover:text-green-800"
+              >
+                Leer en el DOF <span>→</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Extra trust row */}
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <StatCard icon="🔒" value="256-bit" label="Cifrado de datos" />
+            <StatCard icon="📦" value="5 años" label="Respaldos automáticos" />
+            <StatCard icon="👥" value="Roles" label="Doctor, enfermería, admin" />
+            <StatCard icon="📧" value="Alertas" label="Email automático" />
           </div>
         </div>
       </section>
@@ -197,5 +223,27 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function BentoCard({ icon, color, title, description }: { icon: string; color: string; title: string; description: string }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+      <div className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl ${color} text-2xl`}>
+        {icon}
+      </div>
+      <h3 className="mb-1.5 text-base font-semibold text-slate-900">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function StatCard({ icon, value, label }: { icon: string; value: string; label: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+      <div className="text-2xl">{icon}</div>
+      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
+      <p className="text-xs text-slate-500">{label}</p>
+    </div>
   );
 }
