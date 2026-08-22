@@ -2,97 +2,202 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-800 to-slate-900">
+    <main className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-bold text-blue-700">
-            M
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-700 text-base font-bold text-white">
+              N
+            </div>
+            <span className="text-lg font-bold text-slate-900">NovaMed</span>
           </div>
-          <span className="text-lg font-semibold text-white">CRM Doctores</span>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href="/registro"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-blue-200 transition hover:text-white"
-          >
-            Registrarse
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
-          >
-            Iniciar sesión
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/registro"
+              className="hidden rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 sm:inline-flex"
+            >
+              Crear consultorio
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
+            >
+              Iniciar sesión
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
-        <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">
-          El expediente clínico electrónico
-          <span className="block text-blue-300">que tu consultorio necesita</span>
-        </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-blue-100/80">
-          Diseñado para médicos y clínicas en México. Lleva el control de tus
-          pacientes, genera recetas, y cumple con el expediente digital que
-          exigen las autoridades de salud — todo desde un solo lugar.
-        </p>
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/registro"
-            className="rounded-xl bg-white px-8 py-3 text-base font-semibold text-blue-700 shadow-lg transition hover:bg-blue-50"
-          >
-            Crear mi consultorio gratis
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-xl border border-white/30 px-8 py-3 text-base font-semibold text-white transition hover:bg-white/10"
-          >
-            Ya tengo cuenta
-          </Link>
+      <section className="bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 px-6 py-20 sm:py-28">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 text-sm font-medium text-amber-300">
+            <span>⚖️</span>
+            <span>Obligatorio según NOM-004-SSA3-2012</span>
+          </div>
+          <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+            Tu expediente clínico
+            <span className="block text-blue-300">electrónico y legal</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-blue-100/80">
+            La Secretaría de Salud exige a <strong className="text-white">todo consultorio, clínica y hospital</strong> llevar
+            expediente clínico conforme a la norma. NovaMed te permite cumplir desde el primer paciente
+            — sin papeleo, sin riesgo de sanciones.
+          </p>
+          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              href="/registro"
+              className="w-full rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-blue-700 shadow-lg transition hover:bg-blue-50 sm:w-auto"
+            >
+              Comenzar gratis
+            </Link>
+            <Link
+              href="/login"
+              className="w-full rounded-xl border border-white/30 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+            >
+              Ya tengo cuenta
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="mx-auto max-w-5xl px-6 pb-20">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <FeatureCard
-            icon="📋"
-            title="Expediente digital"
-            description="Historia clínica, notas de evolución y documentos organizados por paciente. Cumple con la NOM-004-SSA3."
-          />
-          <FeatureCard
-            icon="💊"
-            title="Recetas electrónicas"
-            description="Genera y envía recetas profesionales directamente al correo de tus pacientes con un solo click."
-          />
-          <FeatureCard
-            icon="👥"
-            title="Gestión de pacientes"
-            description="Directorio completo de pacientes con su historial, cirugías, estudios y seguimiento centralizado."
-          />
-          <FeatureCard
-            icon="🏥"
-            title="Hojas de consumo"
-            description="Registra insumos y materiales utilizados en cada procedimiento quirúrgico de forma detallada."
-          />
-          <FeatureCard
-            icon="📊"
-            title="Panel administrativo"
-            description="Visualiza la actividad de tu clínica, administra usuarios, doctores y configuración general."
-          />
-          <FeatureCard
-            icon="🔒"
-            title="Seguro y privado"
-            description="Acceso por roles, bitácora de actividad y datos protegidos. Solo personal autorizado accede a la información."
-          />
+      {/* Regulatory Banner */}
+      <section className="border-b border-slate-200 bg-white px-6 py-12">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 sm:p-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-2xl">
+                📜
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  ¿Sabías que el expediente clínico electrónico es obligatorio?
+                </h2>
+                <p className="mt-2 leading-relaxed text-slate-600">
+                  La <strong>NOM-004-SSA3-2012</strong>, publicada en el Diario Oficial de la Federación,
+                  establece los criterios científicos, éticos y administrativos obligatorios para la
+                  elaboración, uso y conservación del expediente clínico en México. Aplica a{" "}
+                  <strong>todos los establecimientos de atención médica de los sectores público, social y privado</strong>.
+                  Su incumplimiento puede derivar en sanciones administrativas, multas e incluso la clausura del establecimiento.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <NormPoint text="Conservación mínima de 5 años" />
+                  <NormPoint text="Obligatorio para todo personal de salud" />
+                  <NormPoint text="Información confidencial del paciente" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What NovaMed does */}
+      <section className="px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
+              Todo lo que la norma exige,
+              <span className="text-blue-700"> en un solo sistema</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-slate-500">
+              NovaMed cubre cada requisito de la NOM-004 de forma digital, segura y accesible
+              desde cualquier dispositivo.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard
+              icon="📋"
+              title="Historia clínica completa"
+              description="Ficha de identificación, antecedentes heredo-familiares y personales, padecimiento actual, exploración física y diagnóstico — exactamente como lo pide la NOM-004 (sección 6.1)."
+            />
+            <FeatureCard
+              icon="📝"
+              title="Notas de evolución"
+              description="Registra la evolución del paciente con notas inmutables. Una vez firmadas no se pueden borrar, solo agregar adendas — cumpliendo las reglas de redacción de la norma."
+            />
+            <FeatureCard
+              icon="💊"
+              title="Recetas digitales"
+              description="Genera recetas con cédula profesional, institución, domicilio, denominación genérica, dosis y vía de administración. Se envían al correo del paciente automáticamente."
+            />
+            <FeatureCard
+              icon="🏥"
+              title="Expediente quirúrgico"
+              description="Notas preoperatorias (NOM-004, 8.5) y postoperatorias (8.8) con cada campo obligatorio. Hojas de consumo e insumos detallados por procedimiento."
+            />
+            <FeatureCard
+              icon="🔒"
+              title="Confidencialidad garantizada"
+              description="Acceso por roles (doctor, enfermería, administrador), bitácora de auditoría de toda actividad, y datos que solo se revelan por orden judicial o autorización del paciente."
+            />
+            <FeatureCard
+              icon="📦"
+              title="Conservación de 5 años"
+              description="Respaldos automáticos cifrados. Tu expediente clínico se conserva el mínimo de 5 años que exige la norma — sin que tengas que preocuparte por nada."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="border-t border-slate-200 bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900">
+            Así de fácil funciona
+          </h2>
+          <div className="mt-12 grid gap-8 sm:grid-cols-3">
+            <Step
+              number="1"
+              title="Crea tu consultorio"
+              description="Regístrate gratis, configura tu consultorio con tus datos fiscales y especialidades."
+            />
+            <Step
+              number="2"
+              title="Registra pacientes"
+              description="Enfermería o tú mismo capturan la hoja de ingreso con la historia clínica del paciente."
+            />
+            <Step
+              number="3"
+              title="Consulta y receta"
+              description="Atiende, escribe notas de evolución, genera recetas PDF y envíalas por correo al paciente."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-gradient-to-r from-blue-800 to-blue-900 px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">
+            No esperes a que te lo pidan en una inspección
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-blue-100/80">
+            Cumple con la NOM-004 desde hoy. Miles de médicos en México ya necesitan
+            digitalizar su expediente. Comienza gratis y sin compromiso.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <Link
+              href="/registro"
+              className="w-full rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-blue-700 shadow-lg transition hover:bg-blue-50 sm:w-auto"
+            >
+              Crear mi consultorio gratis
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 text-center text-sm text-blue-200/60">
-        <p>CRM Doctores — Hecho en México por MAW Soluciones</p>
+      <footer className="border-t border-slate-200 bg-white px-6 py-8">
+        <div className="mx-auto max-w-5xl text-center text-sm text-slate-400">
+          <p className="font-medium text-slate-600">NovaMed — Expediente Clínico Electrónico</p>
+          <p className="mt-1">Hecho en México por MAW Soluciones</p>
+          <p className="mt-3 text-xs">
+            Sistema diseñado conforme a la NOM-004-SSA3-2012 para el expediente clínico,
+            la Ley General de Salud y la LFPDPPP para protección de datos personales.
+          </p>
+        </div>
       </footer>
     </main>
   );
@@ -100,10 +205,31 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
-    <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
       <div className="mb-3 text-3xl">{icon}</div>
-      <h3 className="mb-2 text-lg font-semibold text-white">{title}</h3>
-      <p className="text-sm leading-relaxed text-blue-100/70">{description}</p>
+      <h3 className="mb-2 text-lg font-semibold text-slate-900">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function Step({ number, title, description }: { number: string; title: string; description: string }) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-700">
+        {number}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold text-slate-900">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function NormPoint({ text }: { text: string }) {
+  return (
+    <div className="flex items-center gap-2 text-sm font-medium text-amber-800">
+      <span className="text-amber-600">✓</span>
+      <span>{text}</span>
     </div>
   );
 }

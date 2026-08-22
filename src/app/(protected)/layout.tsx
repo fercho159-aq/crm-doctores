@@ -63,8 +63,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 font-bold text-blue-800">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-sm text-white">M</span>
-              <span className="hidden sm:inline">MIT Medical Tower</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-sm text-white">N</span>
+              <span className="hidden sm:inline">NovaMed</span>
             </Link>
             <nav className="flex flex-wrap items-center gap-1">
               {nav.map((item) => (
