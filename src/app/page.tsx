@@ -56,21 +56,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Carousel */}
-      <section className="border-b border-slate-200 bg-white px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-3xl font-bold text-slate-900">
-            Lo que dicen los doctores
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
-            Médicos que ya digitalizaron su consultorio con NovaMed
-          </p>
-          <div className="mt-12">
-            <TestimonialCarousel />
-          </div>
-        </div>
-      </section>
-
       {/* Why NovaMed — visual feature section */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
@@ -202,6 +187,21 @@ export default function LandingPage() {
                 Notas de evolución, recetas PDF profesionales y envío automático al correo del paciente.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Carousel */}
+      <section className="bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-white">
+            Lo que dicen los doctores
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-blue-200/70">
+            Médicos que ya digitalizaron su consultorio con NovaMed
+          </p>
+          <div className="mt-12">
+            <TestimonialCarousel />
           </div>
         </div>
       </section>
