@@ -34,9 +34,9 @@ const SOLUTIONS: Record<Solution, { label: string; icon: string; available: bool
         subtitle: "Para clínicas y hospitales",
         price: "$4,500",
         period: " MXN/mes",
-        badge: "Factura incluida",
-        badgeColor: "text-slate-400",
-        cta: "Solicitar demo",
+        badge: "15 días de prueba gratis",
+        badgeColor: "text-emerald-600",
+        cta: "Empezar demo de 15 días",
         ctaStyle: "bg-blue-700 text-white hover:bg-blue-800",
         highlight: true,
         features: [
