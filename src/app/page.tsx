@@ -40,7 +40,22 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* NOM-004 + Features (merged section) */}
+      {/* Testimonials Carousel */}
+      <section className="border-b border-slate-200 bg-white px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900">
+            Lo que dicen los doctores
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+            Médicos que ya digitalizaron su consultorio con NovaMed
+          </p>
+          <div className="mt-12">
+            <TestimonialCarousel />
+          </div>
+        </div>
+      </section>
+
+      {/* NOM-004 + Video */}
       <section className="px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl">
           {/* DOF compact excerpt */}
@@ -96,57 +111,24 @@ export default function LandingPage() {
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">
                   La autoridad sanitaria ya exige el expediente clínico electrónico.
-                  Conoce por qué es obligatorio y cómo NovaMed te ayuda a cumplir desde hoy.
+                  NovaMed cubre todo lo que la norma pide:
                 </p>
+                <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                  <li className="flex items-start gap-2"><span className="text-blue-600">📋</span> Historia clínica completa (NOM-004, 6.1)</li>
+                  <li className="flex items-start gap-2"><span className="text-blue-600">📝</span> Notas de evolución inmutables</li>
+                  <li className="flex items-start gap-2"><span className="text-blue-600">💊</span> Recetas digitales en PDF</li>
+                  <li className="flex items-start gap-2"><span className="text-blue-600">🏥</span> Expediente quirúrgico (pre y postoperatorio)</li>
+                  <li className="flex items-start gap-2"><span className="text-blue-600">🔒</span> Seguridad por roles y bitácora</li>
+                  <li className="flex items-start gap-2"><span className="text-blue-600">📦</span> Respaldos cifrados por 5 años</li>
+                </ul>
                 <Link
                   href="/registro"
-                  className="mt-4 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
+                  className="mt-5 inline-block rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
                 >
                   Comenzar gratis
                 </Link>
               </div>
             </div>
-          </div>
-
-          {/* Features grid */}
-          <div className="mt-14 text-center">
-            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">
-              Todo lo que la norma exige,
-              <span className="text-blue-700"> en un solo sistema</span>
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon="📋"
-              title="Historia clínica"
-              description="Ficha de identificación, antecedentes, exploración física y diagnóstico — conforme a la NOM-004 (6.1)."
-            />
-            <FeatureCard
-              icon="📝"
-              title="Notas de evolución"
-              description="Notas inmutables una vez firmadas. Solo adendas, nunca borrado — como exige la norma."
-            />
-            <FeatureCard
-              icon="💊"
-              title="Recetas digitales"
-              description="PDF con cédula profesional, dosis y vía de administración. Se envía al correo del paciente."
-            />
-            <FeatureCard
-              icon="🏥"
-              title="Expediente quirúrgico"
-              description="Notas preoperatorias (8.5) y postoperatorias (8.8). Hojas de consumo por procedimiento."
-            />
-            <FeatureCard
-              icon="🔒"
-              title="Seguridad y roles"
-              description="Acceso por roles, bitácora de auditoría y datos protegidos conforme a la LFPDPPP."
-            />
-            <FeatureCard
-              icon="📦"
-              title="Respaldos 5 años"
-              description="Respaldos cifrados automáticos. Cumple la conservación mínima que exige la norma."
-            />
           </div>
         </div>
       </section>
@@ -204,41 +186,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Carousel */}
-      <section className="border-t border-slate-200 bg-white px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="text-center text-3xl font-bold text-slate-900">
-            Lo que dicen los doctores
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
-            Médicos que ya digitalizaron su consultorio con NovaMed
-          </p>
-          <div className="mt-12">
-            <TestimonialCarousel />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="bg-gradient-to-r from-blue-800 to-blue-900 px-6 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">
-            No esperes a que te lo pidan en una inspección
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-blue-100/80">
-            Cumple con la NOM-004 desde hoy. Comienza gratis y sin compromiso.
-          </p>
-          <div className="mt-8">
-            <Link
-              href="/registro"
-              className="inline-block rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-blue-700 shadow-lg transition hover:bg-blue-50"
-            >
-              Crear mi consultorio gratis
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white px-6 py-8">
         <div className="mx-auto max-w-5xl text-center text-sm text-slate-400">
@@ -250,15 +197,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function FeatureCard({ icon, title, description }: { icon: string; title: string; description: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-      <div className="mb-3 text-3xl">{icon}</div>
-      <h3 className="mb-2 text-lg font-semibold text-slate-900">{title}</h3>
-      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
-    </div>
   );
 }
