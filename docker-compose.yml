@@ -1,12 +1,12 @@
 services:
   app:
     build: .
-    container_name: medtower-crm
+    container_name: novamed-app
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3021:3000"
+      - "127.0.0.1:3100:3000"
     environment:
-      DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
+      DATABASE_URL: postgresql://novamed:${POSTGRES_PASSWORD}@db:5432/novamed_db
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       CRON_SECRET: ${CRON_SECRET}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
@@ -24,13 +24,13 @@ services:
     build:
       context: .
       target: builder
-    container_name: medtower-migrate
+    container_name: novamed-migrate
     command: >
       sh -c "npx prisma migrate deploy
       && npx prisma db execute --schema prisma/schema.prisma --file prisma/immutability.sql
       && npx tsx prisma/seed.ts"
     environment:
-      DATABASE_URL: postgresql://medtower:${POSTGRES_PASSWORD}@db:5432/medtower_crm
+      DATABASE_URL: postgresql://novamed:${POSTGRES_PASSWORD}@db:5432/novamed_db
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
     depends_on:
       db:
@@ -38,20 +38,20 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: medtower-db
+    container_name: novamed-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: medtower
+      POSTGRES_USER: novamed
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: medtower_crm
+      POSTGRES_DB: novamed_db
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - novamed-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medtower -d medtower_crm"]
+      test: ["CMD-SHELL", "pg_isready -U novamed -d novamed_db"]
       interval: 5s
       timeout: 5s
       retries: 10
 
 volumes:
-  pgdata:
+  novamed-pgdata:
   uploads:
