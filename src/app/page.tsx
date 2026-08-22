@@ -149,13 +149,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Extra trust row */}
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <StatCard icon="🔒" value="256-bit" label="Cifrado de datos" />
-            <StatCard icon="📦" value="5 años" label="Respaldos automáticos" />
-            <StatCard icon="👥" value="Roles" label="Doctor, enfermería, admin" />
-            <StatCard icon="📧" value="Alertas" label="Email automático" />
-          </div>
         </div>
       </section>
 
@@ -238,12 +231,3 @@ function BentoCard({ icon, color, title, description }: { icon: string; color: s
   );
 }
 
-function StatCard({ icon, value, label }: { icon: string; value: string; label: string }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-      <div className="text-2xl">{icon}</div>
-      <p className="mt-1 text-lg font-bold text-slate-900">{value}</p>
-      <p className="text-xs text-slate-500">{label}</p>
-    </div>
-  );
-}
