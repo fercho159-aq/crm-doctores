@@ -1,5 +1,5 @@
 import "server-only";
-import { Resend } from "resend";
+import { createTransport } from "nodemailer";
 import { readFile } from "fs/promises";
 import { db } from "./db";
 import { audit } from "./audit";
@@ -10,10 +10,17 @@ import { audit } from "./audit";
 const RETRY_DELAYS_MS = [60_000, 600_000, 3_600_000];
 const MAX_INTENTOS = 3;
 
-function getResend() {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  return new Resend(key);
+function getTransporter() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  return createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT ?? "465"),
+    secure: true,
+    auth: { user, pass },
+  });
 }
 
 export async function encolarReceta(recetaId: string, destinatario: string) {
@@ -36,41 +43,42 @@ export async function procesarColaCorreo(): Promise<{ procesados: number; enviad
     take: 20,
   });
 
-  const resend = getResend();
+  const transporter = getTransporter();
   const config = await db.configuracion.findUnique({ where: { id: 1 } });
+  const fromEmail = process.env.SMTP_USER ?? "info@novamedics.com.mx";
+  const fromName = config?.razonSocial ?? "NovaMedics";
   let enviados = 0, fallidos = 0;
 
   for (const item of pendientes) {
     const receta = item.receta;
-    if (!resend) {
+    if (!transporter) {
       await db.emailQueue.update({
         where: { id: item.id },
-        data: { ultimoError: "RESEND_API_KEY no configurada", proximoIntento: new Date(Date.now() + 3_600_000) },
+        data: { ultimoError: "SMTP no configurado (SMTP_HOST, SMTP_USER, SMTP_PASS)", proximoIntento: new Date(Date.now() + 3_600_000) },
       });
       continue;
     }
     try {
-      let attachment: { filename: string; content: Buffer }[] = [];
+      const attachments: { filename: string; content: Buffer }[] = [];
       if (receta.documento) {
         const content = await readFile(receta.documento.ruta);
-        attachment = [{ filename: receta.documento.nombreArchivo, content }];
+        attachments.push({ filename: receta.documento.nombreArchivo, content });
       }
       const doctorNombre = receta.asignacion.doctor.usuario.nombreCompleto;
-      // Minimización de datos: el cuerpo no reproduce el detalle clínico.
-      const { error } = await resend.emails.send({
-        from: config?.emailRemitente ?? "onboarding@resend.dev",
+
+      await transporter.sendMail({
+        from: `"${fromName}" <${fromEmail}>`,
         to: item.destinatario,
-        subject: `Su receta médica — ${config?.razonSocial ?? "MIT Medical Tower"}`,
+        subject: `Su receta médica — ${fromName}`,
         text: [
           `Estimado(a) paciente:`,
           ``,
           `Le enviamos adjunta su receta médica (folio ${receta.folio}) emitida por ${doctorNombre}.`,
           ``,
-          `Este correo fue generado automáticamente por el sistema de ${config?.razonSocial ?? "MIT Medical Tower"}. No responda a este mensaje.`,
+          `Este correo fue generado automáticamente por el sistema de ${fromName}. No responda a este mensaje.`,
         ].join("\n"),
-        attachments: attachment,
+        attachments,
       });
-      if (error) throw new Error(error.message);
 
       await db.$transaction([
         db.emailQueue.update({ where: { id: item.id }, data: { estado: "ENVIADO", intentos: item.intentos + 1 } }),
