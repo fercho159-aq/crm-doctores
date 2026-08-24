@@ -16,6 +16,8 @@ export default async function SuperadminPage() {
     registrosHoy,
     registrosGoogle,
     usuariosRecientes,
+    workspacesBasic,
+    workspacesClinic,
   ] = await Promise.all([
     db.workspace.count(),
     db.usuario.count(),
@@ -28,9 +30,16 @@ export default async function SuperadminPage() {
       take: 20,
       include: { workspace: true },
     }),
+    db.workspace.count({ where: { tipo: "BASIC" } }),
+    db.workspace.count({ where: { tipo: "CLINIC" } }),
   ]);
 
   const usuariosNormales = totalUsuarios - registrosGoogle;
+
+  // Usuarios por plan: BASIC = Receta (gratis), CLINIC = Clínica Pro
+  // Consultorio ($199) no tiene tipo propio aún, se diferencia cuando se integre Stripe
+  const planReceta = workspacesBasic;
+  const planClinica = workspacesClinic;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -45,6 +54,49 @@ export default async function SuperadminPage() {
         <StatCard label="Usuarios" value={totalUsuarios} icon="👤" />
         <StatCard label="Pacientes" value={totalPacientes} icon="📋" />
         <StatCard label="Recetas emitidas" value={totalRecetas} icon="💊" />
+      </div>
+
+      {/* Usuarios por plan */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-lg font-bold text-slate-900">Usuarios por plan</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Receta (Gratis)</p>
+                <p className="text-xs text-slate-500">Plan BASIC</p>
+              </div>
+              <p className="text-2xl font-bold text-emerald-600">{planReceta}</p>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-slate-100">
+              <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${totalWorkspaces ? (planReceta / totalWorkspaces) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Consultorio ($199)</p>
+                <p className="text-xs text-slate-500">Próximamente con Stripe</p>
+              </div>
+              <p className="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-slate-100">
+              <div className="h-2 rounded-full bg-blue-500" style={{ width: "0%" }} />
+            </div>
+          </div>
+          <div className="rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Clínica Pro ($699)</p>
+                <p className="text-xs text-slate-500">Plan CLINIC</p>
+              </div>
+              <p className="text-2xl font-bold text-purple-600">{planClinica}</p>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-slate-100">
+              <div className="h-2 rounded-full bg-purple-500" style={{ width: `${totalWorkspaces ? (planClinica / totalWorkspaces) * 100 : 0}%` }} />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

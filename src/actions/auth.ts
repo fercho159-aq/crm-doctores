@@ -18,6 +18,9 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const result = await login(parsed.data.email, parsed.data.password);
   if (!result.ok) return { error: result.error };
+  if (parsed.data.email.toLowerCase().trim() === "info@novamedics.com.mx") {
+    redirect("/superadmin");
+  }
   redirect("/dashboard");
 }
 
