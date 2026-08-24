@@ -91,27 +91,6 @@ export async function emitirConsultaRapida(
 
   const paciente = asignacion.paciente;
 
-  // Guardar signos vitales en la hoja (actualizar la existente)
-  const hoja = await db.hojaPrimerLlenado.findFirst({
-    where: { pacienteId: paciente.id },
-    orderBy: { version: "desc" },
-  });
-  if (hoja) {
-    await db.hojaPrimerLlenado.update({
-      where: { id: hoja.id },
-      data: {
-        pesoKg: d.pesoKg ?? null,
-        tallaCm: d.tallaCm ?? null,
-        taSistolica: d.taSistolica ?? null,
-        taDiastolica: d.taDiastolica ?? null,
-        fc: d.fc ?? null,
-        temperatura: d.temperatura ?? null,
-        spo2: d.spo2 ?? null,
-        glucosa: d.glucosa ?? null,
-      },
-    });
-  }
-
   // Crear nota de evolución con signos vitales y diagnóstico
   const signosVitales = {
     pesoKg: d.pesoKg, tallaCm: d.tallaCm,
@@ -133,6 +112,11 @@ export async function emitirConsultaRapida(
       fechaFirma: new Date(),
       elaboradaPorId: user.id,
     },
+  });
+
+  const ultimaHoja = await db.hojaPrimerLlenado.findFirst({
+    where: { pacienteId: paciente.id, estado: "CERRADA" },
+    orderBy: { version: "desc" },
   });
 
   // Emitir receta
