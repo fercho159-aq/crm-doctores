@@ -8,6 +8,11 @@ import { enviarBienvenida } from "@/lib/email";
 const SESSION_COOKIE = "mit_session";
 const SESSION_HOURS = 8;
 
+function siteUrl(path: string) {
+  const base = process.env.NEXT_PUBLIC_SITE_URL || process.env.GOOGLE_REDIRECT_URI?.replace("/api/auth/google/callback", "") || "https://novamedics.com.mx";
+  return `${base}${path}`;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
 
   if (error || !code) {
-    return NextResponse.redirect(new URL("/login?error=google_denied", request.url));
+    return NextResponse.redirect(siteUrl("/login?error=google_denied"));
   }
 
   // Verify state
@@ -24,7 +29,7 @@ export async function GET(request: NextRequest) {
   jar.delete("google_oauth_state");
 
   if (!savedState || savedState !== state) {
-    return NextResponse.redirect(new URL("/login?error=invalid_state", request.url));
+    return NextResponse.redirect(siteUrl("/login?error=invalid_state"));
   }
 
   // Exchange code for tokens
@@ -41,7 +46,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!tokenRes.ok) {
-    return NextResponse.redirect(new URL("/login?error=token_exchange", request.url));
+    return NextResponse.redirect(siteUrl("/login?error=token_exchange"));
   }
 
   const tokens = await tokenRes.json();
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (!userRes.ok) {
-    return NextResponse.redirect(new URL("/login?error=userinfo", request.url));
+    return NextResponse.redirect(siteUrl("/login?error=userinfo"));
   }
 
   const googleUser = await userRes.json() as {
@@ -116,7 +121,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (!usuario || !usuario.activo) {
-    return NextResponse.redirect(new URL("/login?error=cuenta_inactiva", request.url));
+    return NextResponse.redirect(siteUrl("/login?error=cuenta_inactiva"));
   }
 
   // Create session
@@ -148,5 +153,5 @@ export async function GET(request: NextRequest) {
     expires: expiresAt,
   });
 
-  return NextResponse.redirect(new URL("/mi-consulta", request.url));
+  return NextResponse.redirect(siteUrl("/mi-consulta"));
 }
