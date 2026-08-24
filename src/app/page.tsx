@@ -37,10 +37,10 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/registro"
+                href="/precios"
                 className="rounded-xl bg-white px-8 py-3.5 text-center text-base font-bold text-blue-700 shadow-lg transition hover:bg-blue-50"
               >
-                Crear consultorio gratis
+                Empezar prueba
               </Link>
               <Link
                 href="/login"

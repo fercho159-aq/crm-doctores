@@ -12,8 +12,8 @@ const SOLUTIONS: Record<Solution, { label: string; icon: string; available: bool
     available: true,
     plans: [
       {
-        name: "Consultorio",
-        subtitle: "Para médicos independientes",
+        name: "Receta",
+        subtitle: "Para médicos que solo necesitan recetar",
         price: "$0",
         period: "/mes",
         badge: "Gratis para siempre",
@@ -21,27 +21,45 @@ const SOLUTIONS: Record<Solution, { label: string; icon: string; available: bool
         cta: "Comenzar gratis",
         ctaStyle: "border border-blue-700 text-blue-700 hover:bg-blue-50",
         features: [
-          "Historia clínica completa (NOM-004)",
-          "Notas de evolución inmutables",
           "Recetas digitales en PDF",
           "Envío automático por correo al paciente",
-          "Gestión de pacientes",
           "1 usuario (doctor)",
+        ],
+      },
+      {
+        name: "Consultorio",
+        subtitle: "Para médicos independientes",
+        price: "$199",
+        oldPrice: "$499",
+        period: " MXN/mes",
+        badge: "Precio de lanzamiento",
+        badgeColor: "text-emerald-600",
+        cta: "Comenzar ahora",
+        ctaStyle: "bg-blue-700 text-white hover:bg-blue-800",
+        highlight: true,
+        popular: true,
+        features: [
+          "Todo lo del plan Receta",
+          "El paciente revisa su consulta, recetas e historial desde la app o sitio web",
+          "Importa tus pacientes actuales (nombre, teléfono, correo, enfermedad)",
+          "Historia clínica completa (NOM-004)",
+          "Notas de evolución inmutables",
+          "Gestión de pacientes",
         ],
       },
       {
         name: "Clínica Pro",
         subtitle: "Para clínicas y hospitales",
-        price: "$4,500",
+        price: "$699",
         period: " MXN/mes",
         badge: "15 días de prueba gratis",
         badgeColor: "text-emerald-600",
         cta: "Empezar demo de 15 días",
-        ctaStyle: "bg-blue-700 text-white hover:bg-blue-800",
-        highlight: true,
+        ctaStyle: "bg-slate-900 text-white hover:bg-slate-800",
         features: [
           "Todo lo del plan Consultorio",
           "Expediente quirúrgico (pre y postoperatorio)",
+          "Agenda de pacientes integrada",
           "Hojas de consumo e insumos con precios",
           "Alertas automáticas por correo",
           "Usuarios ilimitados",
@@ -70,12 +88,14 @@ interface PlanData {
   name: string;
   subtitle: string;
   price: string;
+  oldPrice?: string;
   period: string;
   badge: string;
   badgeColor: string;
   cta: string;
   ctaStyle: string;
   highlight?: boolean;
+  popular?: boolean;
   features: string[];
 }
 
@@ -105,7 +125,7 @@ export function PricingTabs() {
 
       {/* Content */}
       {solution.available ? (
-        <div className="mx-auto mt-8 grid max-w-3xl gap-6 sm:grid-cols-2">
+        <div className="mx-auto mt-8 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {solution.plans.map((plan) => (
             <div
               key={plan.name}
@@ -115,7 +135,7 @@ export function PricingTabs() {
                   : "border border-slate-200"
               }`}
             >
-              {plan.highlight && (
+              {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-700 px-3 py-0.5 text-xs font-semibold text-white">
                   Más popular
                 </div>
@@ -123,6 +143,9 @@ export function PricingTabs() {
               <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
               <p className="mt-0.5 text-sm text-slate-500">{plan.subtitle}</p>
               <div className="mt-4">
+                {plan.oldPrice && (
+                  <span className="mr-2 text-lg text-slate-400 line-through">{plan.oldPrice}</span>
+                )}
                 <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
                 <span className="text-sm text-slate-500">{plan.period}</span>
               </div>
