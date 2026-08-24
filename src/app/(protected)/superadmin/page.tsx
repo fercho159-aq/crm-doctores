@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 
-const SUPERADMIN_EMAIL = "info@novamedics.com.mx";
+const SUPERADMIN_EMAIL = "aldotrejop@gmail.com";
 
 export default async function SuperadminPage() {
   const user = await getSession();
