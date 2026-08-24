@@ -5,7 +5,7 @@ import { registrarPaciente } from "@/actions/enfermeria";
 import { Card, CardBody, CardHeader, Field, Input, Select, ErrorMsg } from "@/components/ui";
 import { SubmitButton } from "@/components/forms";
 
-export function RegistrarPacienteForm() {
+export function RegistrarPacienteForm({ isBasic = false }: { isBasic?: boolean }) {
   const [state, formAction] = useActionState(registrarPaciente, {});
   const [sinCorreo, setSinCorreo] = useState(false);
 
@@ -96,8 +96,19 @@ export function RegistrarPacienteForm() {
         </CardBody>
       </Card>
 
+      {isBasic && (
+        <Card>
+          <CardHeader title="Alergias" subtitle="Importante para la seguridad del paciente." />
+          <CardBody>
+            <Field label="Alergias conocidas" hint="Medicamentos, alimentos, látex, etc. Si no tiene, escriba «NKDA» o «Ninguna».">
+              <Input name="alergias" placeholder="Ej. Penicilina, sulfonamidas, NKDA…" />
+            </Field>
+          </CardBody>
+        </Card>
+      )}
+
       <div className="flex justify-end">
-        <SubmitButton>Guardar y continuar con la hoja clínica →</SubmitButton>
+        <SubmitButton>{isBasic ? "Guardar y crear receta →" : "Guardar y continuar con la hoja clínica →"}</SubmitButton>
       </div>
     </form>
   );

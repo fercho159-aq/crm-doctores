@@ -90,6 +90,28 @@ export async function registrarPaciente(_p: ActionState, fd: FormData): Promise<
     entidadId: paciente.id, pacienteId: paciente.id,
     datosDespues: { expediente: paciente.numeroExpediente },
   });
+
+  // BASIC: salta la hoja completa, crea hoja mínima con alergias, auto-asigna y va a receta
+  if (user.workspaceTipo === "BASIC" && user.rol === "DOCTOR" && user.doctorId) {
+    const alergias = String(fd.get("alergias") ?? "").trim() || "No referidas";
+    await db.hojaPrimerLlenado.create({
+      data: {
+        pacienteId: paciente.id,
+        alergias,
+        estado: "CERRADA",
+        disponibleConsulta: true,
+        fechaCierre: new Date(),
+      },
+    });
+    const propia = await db.doctorEspecialidad.findFirst({ where: { doctorId: user.doctorId } });
+    if (propia) {
+      await db.asignacion.create({
+        data: { pacienteId: paciente.id, especialidadId: propia.especialidadId, doctorId: user.doctorId },
+      });
+    }
+    redirect(`/pacientes/${paciente.id}/prescripcion`);
+  }
+
   redirect(`/enfermeria/hoja/${paciente.id}`);
 }
 
