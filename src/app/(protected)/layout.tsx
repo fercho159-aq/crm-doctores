@@ -42,6 +42,12 @@ const NAV_DOCTOR_BASIC: { href: string; label: string }[] = [
   { href: "/mi-perfil", label: "Mi perfil" },
 ];
 
+const NAV_SUPERADMIN: { href: string; label: string }[] = [
+  { href: "/superadmin", label: "Dashboard" },
+];
+
+const SUPERADMIN_EMAIL = "info@novamedics.com.mx";
+
 const ROL_LABEL: Record<string, string> = {
   ADMIN: "Administrador",
   DOCTOR: "Doctor(a)",
@@ -58,7 +64,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   // corta antes para no construir ni exponer el nav de personal.
   if (user.rol === "PACIENTE") redirect("/portal");
 
-  const nav = user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
+  const isSuperadmin = user.email === SUPERADMIN_EMAIL;
+  const nav = isSuperadmin ? NAV_SUPERADMIN : user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
 
   return (
     <div className="min-h-screen">
@@ -67,8 +74,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 font-bold text-blue-800">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-sm text-white">M</span>
-              <span className="hidden sm:inline">MIT Medical Tower</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-sm text-white">N</span>
+              <span className="hidden sm:inline">NovaMedics</span>
             </Link>
             <nav className="flex flex-wrap items-center gap-1">
               {nav.map((item) => (
@@ -85,7 +92,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium text-slate-800">{user.nombreCompleto}</p>
-              <Badge tone="blue">{ROL_LABEL[user.rol]}</Badge>
+              <Badge tone="blue">{isSuperadmin ? "Superadmin" : ROL_LABEL[user.rol]}</Badge>
             </div>
             <form action={logoutAction}>
               <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">

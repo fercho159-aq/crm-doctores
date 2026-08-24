@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { login, hashPassword, getClientIp } from "@/lib/auth";
 import { audit } from "@/lib/audit";
+import { enviarBienvenida } from "@/lib/email";
 import type { ActionState } from "./auth";
 
 const LIMITE_REGISTROS_POR_IP = 3;
@@ -101,6 +102,8 @@ export async function registrarDoctorBasic(_p: ActionState, fd: FormData): Promi
     usuarioId: usuario.id, rol: "DOCTOR", accion: "REGISTRO_BASIC", entidad: "workspace",
     entidadId: workspace.id, datosDespues: { email, nombreCompleto: d.nombreCompleto }, ipOrigen: ip,
   });
+
+  enviarBienvenida(email, d.nombreCompleto).catch(() => {});
 
   const result = await login(email, d.password);
   if (!result.ok) return { error: "Cuenta creada. Inicie sesión con su correo y contraseña." };

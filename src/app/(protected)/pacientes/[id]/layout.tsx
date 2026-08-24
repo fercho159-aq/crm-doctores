@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui";
 import { Stepper, StepperFooter, type Paso } from "@/components/Stepper";
 import { cargarExpediente, nombreCompleto } from "./expediente";
 import { edadDe } from "@/lib/pdf";
+import { getSession } from "@/lib/auth";
 
 export default async function ExpedienteLayout({
   children,
@@ -13,6 +14,8 @@ export default async function ExpedienteLayout({
 }) {
   const { id } = await params;
   const { paciente } = await cargarExpediente(id, { sinBitacora: true });
+  const session = await getSession();
+  const isBasic = session?.workspaceTipo === "BASIC";
 
   const [
     ultimaHoja,
@@ -46,17 +49,23 @@ export default async function ExpedienteLayout({
 
   // Flujo clínico por pasos (sustituye a las pestañas): el avance se marca con
   // el estado real del expediente.
-  const pasos: Paso[] = [
-    { href: `/pacientes/${id}`, label: "Resumen", completado: paciente.asignaciones.length > 0 },
-    { href: `/pacientes/${id}/historia`, label: "Historia clínica", completado: !!ultimaHoja },
-    { href: `/pacientes/${id}/notas`, label: "Consulta y notas", completado: notasFirmadas > 0 },
-    { href: `/pacientes/${id}/recetas`, label: "Receta", completado: recetasEmitidas > 0, opcional: true },
-    { href: `/pacientes/${id}/prescripcion`, label: "Prescripción", completado: prescripcionesFirmadas > 0, opcional: true },
-    { href: `/pacientes/${id}/ordenes`, label: "Órdenes médicas", completado: ordenesFirmadas > 0, opcional: true },
-    { href: `/pacientes/${id}/cirugias`, label: "Cirugía", completado: qxTotal > 0 && qxRealizadas === qxTotal, opcional: true },
-    { href: `/pacientes/${id}/consumo`, label: "Consumo", completado: hojasConsumo > 0, opcional: true },
-    { href: `/pacientes/${id}/documentos`, label: "Documentos", completado: docsTotal > 0 },
-  ];
+  const pasos: Paso[] = isBasic
+    ? [
+        { href: `/pacientes/${id}`, label: "Paciente", completado: paciente.asignaciones.length > 0 },
+        { href: `/pacientes/${id}/consulta-rapida`, label: "Consulta", completado: notasFirmadas > 0 },
+        { href: `/pacientes/${id}/recetas`, label: "Recetas", completado: recetasEmitidas > 0 },
+      ]
+    : [
+        { href: `/pacientes/${id}`, label: "Resumen", completado: paciente.asignaciones.length > 0 },
+        { href: `/pacientes/${id}/historia`, label: "Historia clínica", completado: !!ultimaHoja },
+        { href: `/pacientes/${id}/notas`, label: "Consulta y notas", completado: notasFirmadas > 0 },
+        { href: `/pacientes/${id}/recetas`, label: "Receta", completado: recetasEmitidas > 0, opcional: true },
+        { href: `/pacientes/${id}/prescripcion`, label: "Prescripción", completado: prescripcionesFirmadas > 0, opcional: true },
+        { href: `/pacientes/${id}/ordenes`, label: "Órdenes médicas", completado: ordenesFirmadas > 0, opcional: true },
+        { href: `/pacientes/${id}/cirugias`, label: "Cirugía", completado: qxTotal > 0 && qxRealizadas === qxTotal, opcional: true },
+        { href: `/pacientes/${id}/consumo`, label: "Consumo", completado: hojasConsumo > 0, opcional: true },
+        { href: `/pacientes/${id}/documentos`, label: "Documentos", completado: docsTotal > 0 },
+      ];
 
   return (
     <div className="space-y-4">

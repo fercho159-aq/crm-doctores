@@ -73,9 +73,13 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
         <Card>
           <CardHeader title="Actividad" />
           <CardBody className="space-y-2 text-sm text-slate-600">
-            <p>Notas de evolución firmadas: <strong>{notas}</strong></p>
+            {user.workspaceTipo !== "BASIC" && (
+              <p>Notas de evolución firmadas: <strong>{notas}</strong></p>
+            )}
             <p>Recetas emitidas: <strong>{recetas}</strong></p>
-            <p>Expedientes quirúrgicos: <strong>{cirugias}</strong></p>
+            {user.workspaceTipo !== "BASIC" && (
+              <p>Expedientes quirúrgicos: <strong>{cirugias}</strong></p>
+            )}
           </CardBody>
         </Card>
 
@@ -110,16 +114,29 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
           <Card>
             <CardHeader title="Acciones" />
             <CardBody className="space-y-3">
-              <Link href={`/pacientes/${id}/notas?nueva=1`} className="block">
-                <Button className="w-full">Nueva nota de evolución</Button>
-              </Link>
-              <Link href={`/pacientes/${id}/recetas/nueva`} className="block">
-                <Button className="w-full" variant="secondary">Nueva receta</Button>
-              </Link>
-              <Link href={`/pacientes/${id}/cirugias?nuevo=1`} className="block">
-                <Button className="w-full" variant="secondary">Iniciar expediente quirúrgico</Button>
-              </Link>
-              <AltaForm asignacionId={miAsignacionActiva.id} />
+              {user.workspaceTipo === "BASIC" ? (
+                <>
+                  <Link href={`/pacientes/${id}/consulta-rapida`} className="block">
+                    <Button className="w-full">Nueva consulta</Button>
+                  </Link>
+                  <Link href={`/pacientes/${id}/recetas`} className="block">
+                    <Button className="w-full" variant="secondary">Ver recetas</Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href={`/pacientes/${id}/notas?nueva=1`} className="block">
+                    <Button className="w-full">Nueva nota de evolución</Button>
+                  </Link>
+                  <Link href={`/pacientes/${id}/recetas/nueva`} className="block">
+                    <Button className="w-full" variant="secondary">Nueva receta</Button>
+                  </Link>
+                  <Link href={`/pacientes/${id}/cirugias?nuevo=1`} className="block">
+                    <Button className="w-full" variant="secondary">Iniciar expediente quirúrgico</Button>
+                  </Link>
+                  <AltaForm asignacionId={miAsignacionActiva.id} />
+                </>
+              )}
             </CardBody>
           </Card>
         )}

@@ -5,9 +5,13 @@ import { NextResponse, type NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic =
+    pathname === "/" ||
     pathname === "/login" ||
     pathname === "/registro" ||
+    pathname === "/precios" ||
+    pathname.startsWith("/soluciones") ||
     pathname.startsWith("/api/cron") ||
+    pathname.startsWith("/api/auth") ||
     pathname.startsWith("/portal/activar");
   const hasSession = request.cookies.has("mit_session");
 
@@ -20,5 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.png$).*)"],
 };
