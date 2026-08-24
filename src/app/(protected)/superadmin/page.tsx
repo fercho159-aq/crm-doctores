@@ -21,18 +21,19 @@ export default async function SuperadminPage() {
     workspacesClinic,
   ] = await Promise.all([
     db.workspace.count(),
-    db.usuario.count(),
+    db.usuario.count({ where: { email: { notIn: ["info@novamedics.com.mx", "admin@medicaltower.mx"] } } }),
     db.paciente.count(),
     db.receta.count(),
     db.usuario.count({ where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } } }),
     db.usuario.count({ where: { passwordHash: "GOOGLE_OAUTH" } }),
     db.usuario.findMany({
+      where: { email: { notIn: ["info@novamedics.com.mx", "admin@medicaltower.mx"] } },
       orderBy: { createdAt: "desc" },
       take: 20,
       include: { workspace: true },
     }),
-    db.workspace.count({ where: { tipo: "BASIC" } }),
-    db.workspace.count({ where: { tipo: "CLINIC" } }),
+    db.workspace.count({ where: { tipo: "BASIC", nombre: { startsWith: "Consultorio" } } }),
+    db.workspace.count({ where: { tipo: "CLINIC", nombre: { not: "MIT — Medical Tower" } } }),
   ]);
 
   const usuariosNormales = totalUsuarios - registrosGoogle;
