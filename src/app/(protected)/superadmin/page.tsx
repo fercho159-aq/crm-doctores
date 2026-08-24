@@ -75,18 +75,19 @@ export default async function SuperadminPage() {
             </div>
             <p className="mt-2 text-xs text-blue-600 font-semibold">Ver listado →</p>
           </Link>
-          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 opacity-60">
+          <Link href="/superadmin/plan/basic" className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 transition hover:shadow-md hover:border-blue-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Consultorio ($199)</p>
-                <p className="text-xs text-slate-500">Próximamente con Stripe</p>
+                <p className="text-xs text-slate-500">Se diferenciará con Stripe</p>
               </div>
-              <p className="text-2xl font-bold text-blue-600">0</p>
+              <p className="text-2xl font-bold text-blue-600">—</p>
             </div>
             <div className="mt-3 h-2 rounded-full bg-slate-100">
               <div className="h-2 rounded-full bg-blue-500" style={{ width: "0%" }} />
             </div>
-          </div>
+            <p className="mt-2 text-xs text-blue-600 font-semibold">Ver listado →</p>
+          </Link>
           <Link href="/superadmin/plan/clinic" className="rounded-xl border border-slate-200 p-4 transition hover:shadow-md hover:border-purple-300">
             <div className="flex items-center justify-between">
               <div>
