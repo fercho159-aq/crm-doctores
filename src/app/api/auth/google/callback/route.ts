@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
+import { enviarBienvenida } from "@/lib/email";
 
 const SESSION_COOKIE = "mit_session";
 const SESSION_HOURS = 8;
@@ -100,6 +101,8 @@ export async function GET(request: NextRequest) {
       where: { id: result.user.id },
       include: { doctor: true },
     });
+
+    enviarBienvenida(email, googleUser.name).catch(() => {});
 
     await audit({
       usuarioId: result.user.id,

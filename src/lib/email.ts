@@ -118,6 +118,57 @@ export async function procesarColaCorreo(): Promise<{ procesados: number; enviad
   return { procesados: pendientes.length, enviados, fallidos };
 }
 
+export async function enviarBienvenida(email: string, nombre: string) {
+  const transporter = getTransporter();
+  if (!transporter) return;
+
+  const fromEmail = process.env.SMTP_USER ?? "info@novamedics.com.mx";
+
+  try {
+    await transporter.sendMail({
+      from: `"NovaMedics" <${fromEmail}>`,
+      to: email,
+      subject: "Bienvenido a NovaMedics",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px">
+          <div style="text-align:center;margin-bottom:24px">
+            <div style="display:inline-block;background:#1d4ed8;color:#fff;font-weight:bold;font-size:20px;width:40px;height:40px;line-height:40px;border-radius:10px">N</div>
+          </div>
+          <h1 style="font-size:22px;color:#1e293b;margin:0 0 8px">Hola Dr(a). ${nombre}</h1>
+          <p style="color:#64748b;font-size:15px;line-height:1.6;margin:0 0 20px">
+            Tu cuenta en <strong style="color:#1e293b">NovaMedics</strong> fue creada exitosamente.
+          </p>
+          <div style="background:#f1f5f9;border-radius:12px;padding:16px 20px;margin-bottom:20px">
+            <p style="margin:0 0 4px;font-size:13px;color:#64748b">Tu plan actual</p>
+            <p style="margin:0;font-size:18px;font-weight:bold;color:#1e293b">Receta — Gratis</p>
+          </div>
+          <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 24px">
+            Ya puedes crear recetas digitales y enviarlas por correo a tus pacientes.
+            Completa tu perfil con tu cédula profesional para empezar.
+          </p>
+          <div style="text-align:center;margin-bottom:24px">
+            <a href="https://novamedics.com.mx/mi-consulta" style="display:inline-block;background:#1d4ed8;color:#fff;font-weight:bold;font-size:14px;padding:12px 32px;border-radius:10px;text-decoration:none">
+              Ir a mi consultorio
+            </a>
+          </div>
+          <div style="text-align:center;margin-bottom:16px">
+            <a href="https://novamedics.com.mx/precios" style="font-size:13px;color:#1d4ed8;text-decoration:none">
+              Ver planes disponibles →
+            </a>
+          </div>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
+          <p style="font-size:11px;color:#94a3b8;text-align:center;margin:0">
+            NovaMedics — Expediente Clínico Electrónico<br/>
+            Conforme a la NOM-004-SSA3-2012
+          </p>
+        </div>
+      `,
+    });
+  } catch {
+    // No bloquear el registro si falla el correo
+  }
+}
+
 export async function reintentarEnvio(recetaId: string, destinatario: string) {
   await db.$transaction([
     db.emailQueue.updateMany({
