@@ -109,7 +109,7 @@ export async function registrarPaciente(_p: ActionState, fd: FormData): Promise<
         data: { pacienteId: paciente.id, especialidadId: propia.especialidadId, doctorId: user.doctorId },
       });
     }
-    redirect(`/pacientes/${paciente.id}/prescripcion`);
+    redirect(`/pacientes/${paciente.id}/consulta-rapida`);
   }
 
   redirect(`/enfermeria/hoja/${paciente.id}`);
