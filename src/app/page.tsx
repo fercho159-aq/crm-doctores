@@ -97,9 +97,7 @@ export default function LandingPage() {
 
             {/* Badge de COFEPRIS */}
             <div className="absolute -bottom-5 -left-4 z-10 flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-xl ring-1 ring-black/5">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100">
-                <span className="text-lg">🏛️</span>
-              </div>
+              <img src="/cofepris.png" alt="COFEPRIS" className="h-10 w-auto shrink-0" />
               <div>
                 <p className="text-xs font-bold text-slate-800">COFEPRIS</p>
                 <p className="text-[10px] text-slate-500">Comisión Federal para la Protección<br/>contra Riesgos Sanitarios</p>
