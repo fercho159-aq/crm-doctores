@@ -92,12 +92,21 @@ export async function GET(request: NextRequest) {
           debeCambiarPassword: false,
         },
       });
-      await tx.doctor.create({
+      const doctor = await tx.doctor.create({
         data: {
           usuarioId: user.id,
           cedulaProfesional: "",
           institucionTitulo: "",
         },
+      });
+      // Asignar "Medicina General" por defecto
+      const especialidad = await tx.especialidad.upsert({
+        where: { nombre: "Medicina General" },
+        update: {},
+        create: { nombre: "Medicina General" },
+      });
+      await tx.doctorEspecialidad.create({
+        data: { doctorId: doctor.id, especialidadId: especialidad.id },
       });
       return { workspace, user };
     });
