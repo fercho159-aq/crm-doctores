@@ -110,6 +110,37 @@ export async function procesarColaCorreo(): Promise<{ procesados: number; enviad
   return { procesados: pendientes.length, enviados, fallidos };
 }
 
+// Invitación al portal del paciente: envío directo (no usa EmailQueue, que está
+// atada a Receta). Best-effort: si falla, el staff puede reenviar la invitación
+// desde la ficha del paciente; nunca bloquea la operación que la generó.
+export async function enviarInvitacionPortal(destinatario: string, nombrePaciente: string, enlace: string) {
+  const resend = getResend();
+  if (!resend) return { ok: false as const, error: "RESEND_API_KEY no configurada" };
+  const config = await db.configuracion.findUnique({ where: { id: 1 } });
+  try {
+    const { error } = await resend.emails.send({
+      from: config?.emailRemitente ?? "onboarding@resend.dev",
+      to: destinatario,
+      subject: `Acceso a su portal de paciente — ${config?.razonSocial ?? "MIT Medical Tower"}`,
+      text: [
+        `Estimado(a) ${nombrePaciente}:`,
+        ``,
+        `Se habilitó su acceso al portal de paciente de ${config?.razonSocial ?? "MIT Medical Tower"}.`,
+        `Para activar su cuenta y definir su contraseña, ingrese al siguiente enlace (válido 48 horas):`,
+        ``,
+        enlace,
+        ``,
+        `Si usted no solicitó este acceso, ignore este mensaje.`,
+        `Este correo fue generado automáticamente. No responda a este mensaje.`,
+      ].join("\n"),
+    });
+    if (error) return { ok: false as const, error: error.message };
+    return { ok: true as const };
+  } catch (e) {
+    return { ok: false as const, error: String(e instanceof Error ? e.message : e) };
+  }
+}
+
 export async function reintentarEnvio(recetaId: string, destinatario: string) {
   await db.$transaction([
     db.emailQueue.updateMany({

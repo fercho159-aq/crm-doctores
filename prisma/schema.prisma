@@ -37,6 +37,7 @@ enum RolClave {
   DOCTOR
   ENFERMERIA
   ANESTESIOLOGO
+  PACIENTE
 }
 
 model Usuario {
@@ -53,6 +54,10 @@ model Usuario {
   bloqueadoHasta      DateTime? @map("bloqueado_hasta")
   ultimoAcceso   DateTime? @map("ultimo_acceso")
   createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Cuenta de portal del paciente: 1:1 opcional con Paciente, solo cuando rol = PACIENTE.
+  pacienteId String?   @unique @map("paciente_id") @db.Uuid
+  paciente   Paciente? @relation(fields: [pacienteId], references: [id])
 
   doctor    Doctor?
   sesiones  Session[]
@@ -160,6 +165,12 @@ model Paciente {
   createdAt         DateTime @default(now()) @map("created_at")
   createdById       String?  @map("created_by") @db.Uuid
 
+  // Portal del paciente: foto y preferencia de notificación editables por el propio
+  // paciente (§5 del plan); el resto de los campos administrativos de arriba
+  // (telefono, email, domicilio, contacto de emergencia) ya existían y se reutilizan.
+  fotoUrl                String?  @map("foto_url") // data-URL, igual patrón que Doctor.firmaDigitalizada
+  prefNotificacionEmail  Boolean  @default(true) @map("pref_notificacion_email")
+
   hojas        HojaPrimerLlenado[]
   asignaciones Asignacion[]
   documentos   Documento[]
@@ -170,6 +181,9 @@ model Paciente {
   valoracionesPreanestesicas ValoracionPreanestesica[]
   registrosAnestesicos       RegistroAnestesico[]
   notasPostanestesicas       NotaPostanestesica[]
+  cuentaPortal               Usuario?
+  aportaciones               AportacionPaciente[]
+  invitacionesPortal         InvitacionPortal[]
 
   @@index([nombre, apellidoPaterno])
   @@index([curp])
@@ -485,6 +499,11 @@ enum TipoDocumento {
   NOTA_POSTANESTESICA
 }
 
+enum DocumentoOrigen {
+  STAFF
+  PACIENTE
+}
+
 model Documento {
   id            String   @id @default(uuid()) @db.Uuid
   pacienteId    String   @map("paciente_id") @db.Uuid
@@ -494,6 +513,7 @@ model Documento {
   ruta          String   @map("ruta_o_clave_almacenamiento")
   hashSha256    String   @map("hash_sha256")
   subidoPorId   String   @map("subido_por") @db.Uuid
+  origen        DocumentoOrigen @default(STAFF) // distingue adjuntos subidos por el propio paciente vía portal
   fecha         DateTime @default(now())
 
   recetas Receta[]
@@ -953,4 +973,61 @@ model NotaPostanestesica {
 
   @@index([pacienteId])
   @@map("nota_postanestesica")
+}
+
+// ─────────────────────────── Portal del paciente ───────────────────────────
+// Información aportada por el paciente (alergias, medicamentos, antecedentes,
+// síntomas, observaciones, preconsulta): nunca escribe directamente sobre
+// HojaPrimerLlenado ni NotaEvolucion (protegidas por trigger de inmutabilidad);
+// el profesional de salud la revisa y decide si la incorpora a su propia nota.
+
+enum CategoriaAporte {
+  ALERGIA
+  MEDICAMENTO
+  ANTECEDENTE
+  SINTOMA
+  OBSERVACION
+  PRECONSULTA
+}
+
+enum EstadoAporte {
+  PENDIENTE_REVISION
+  INCORPORADA
+  RECHAZADA
+}
+
+model AportacionPaciente {
+  id            String          @id @default(uuid()) @db.Uuid
+  pacienteId    String          @map("paciente_id") @db.Uuid
+  paciente      Paciente        @relation(fields: [pacienteId], references: [id])
+  categoria     CategoriaAporte
+  contenido     String
+  estado        EstadoAporte    @default(PENDIENTE_REVISION)
+  creadoPorId   String          @map("creado_por") @db.Uuid // Usuario.id (rol PACIENTE) del autor
+  revisadoPorId String?         @map("revisado_por") @db.Uuid // Usuario.id del profesional que revisó
+  notaRevisor   String?         @map("nota_revisor")
+  revisadoEn    DateTime?       @map("revisado_en")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  @@index([pacienteId, estado])
+  @@map("aportacion_paciente")
+}
+
+// Invitación de un solo uso para activar la cuenta de portal de un Paciente ya
+// existente (no hay auto-registro abierto de pacientes, a diferencia de /registro
+// para médicos BASIC). El token se guarda hasheado; el que se envía por correo no
+// se persiste nunca en claro.
+model InvitacionPortal {
+  id          String    @id @default(uuid()) @db.Uuid
+  pacienteId  String    @map("paciente_id") @db.Uuid
+  paciente    Paciente  @relation(fields: [pacienteId], references: [id])
+  email       String    // correo exacto al que se envió; se fija como login al activar
+  tokenHash   String    @unique @map("token_hash")
+  creadoPorId String    @map("creado_por") @db.Uuid // Usuario.id del staff que invitó
+  expiresAt   DateTime  @map("expires_at")
+  usadoEn     DateTime? @map("usado_en")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([pacienteId])
+  @@map("invitacion_portal")
 }

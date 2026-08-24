@@ -14,7 +14,9 @@ const ROL: Record<string, string> = {
 export default async function UsuariosPage() {
   const admin = await requireRole("ADMIN");
   const usuarios = await db.usuario.findMany({
-    where: { workspaceId: admin.workspaceId },
+    // Las cuentas de portal (rol PACIENTE) no son personal: se gestionan desde
+    // la ficha de cada paciente (invitar / ver estado), no en este listado.
+    where: { workspaceId: admin.workspaceId, rol: { not: "PACIENTE" } },
     orderBy: [{ rol: "asc" }, { nombreCompleto: "asc" }],
   });
 

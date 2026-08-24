@@ -31,7 +31,13 @@ export default async function BitacoraPage({
     take: 200,
   });
 
-  const acciones = ["LOGIN", "LOGIN_FALLIDO", "CREAR", "FIRMAR", "ADENDAR", "CANCELAR", "CONSULTAR_EXPEDIENTE", "ENVIAR_RECETA", "TOMAR_PACIENTE", "ALTA", "CERRAR"];
+  const acciones = [
+    "LOGIN", "LOGIN_FALLIDO", "CREAR", "FIRMAR", "ADENDAR", "CANCELAR", "CONSULTAR_EXPEDIENTE",
+    "ENVIAR_RECETA", "TOMAR_PACIENTE", "ALTA", "CERRAR",
+    // Portal del paciente
+    "INVITAR_PORTAL", "ACTIVAR_PORTAL", "CONSULTAR_PORTAL", "ACTUALIZAR_PERFIL_PACIENTE",
+    "APORTAR_INFORMACION", "REVISAR_APORTACION",
+  ];
 
   return (
     <div className="space-y-6">

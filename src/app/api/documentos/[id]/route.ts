@@ -21,6 +21,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       where: { pacienteId: doc.pacienteId, doctorId: user.doctorId ?? "", estado: "ACTIVA" },
     });
     if (!asignacion) return NextResponse.json({ error: "Sin acceso" }, { status: 403 });
+  } else if (user.rol === "PACIENTE") {
+    // Comparación directa contra su propio pacienteId de sesión, no contra el
+    // workspace: un paciente jamás debe alcanzar el documento de otro paciente
+    // del mismo workspace.
+    if (doc.pacienteId !== user.pacienteId) return NextResponse.json({ error: "Sin acceso" }, { status: 403 });
   } else if (user.rol !== "ADMIN") {
     return NextResponse.json({ error: "Sin acceso" }, { status: 403 });
   }

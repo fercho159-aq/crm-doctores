@@ -6,5 +6,6 @@ export default async function Home() {
   if (user.rol === "ADMIN") redirect("/admin");
   if (user.rol === "DOCTOR") redirect("/mi-consulta");
   if (user.rol === "ANESTESIOLOGO") redirect("/anestesiologia");
+  if (user.rol === "PACIENTE") redirect("/portal");
   redirect("/enfermeria");
 }

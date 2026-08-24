@@ -53,6 +53,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const user = await getSession();
   if (!user) redirect("/login");
   if (user.debeCambiarPassword) redirect("/cambiar-password");
+  // El área de personal nunca es el destino de una cuenta de paciente: cada
+  // página aquí ya la excluiría vía requireRole/assertAccesoPaciente, pero se
+  // corta antes para no construir ni exponer el nav de personal.
+  if (user.rol === "PACIENTE") redirect("/portal");
 
   const nav = user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
 

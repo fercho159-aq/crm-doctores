@@ -4,6 +4,7 @@ import { Card, CardHeader, CardBody, Badge, Button, EmptyState } from "@/compone
 import { cargarExpediente } from "./expediente";
 import { AltaForm } from "./AltaForm";
 import { FichaIdentificacionForm } from "./FichaIdentificacionForm";
+import { InvitarPortalForm } from "./InvitarPortalForm";
 
 const ESTADO_ASIG: Record<string, { label: string; tone: "blue" | "green" | "slate" | "red" }> = {
   ACTIVA: { label: "Activa", tone: "blue" },
@@ -16,11 +17,17 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
   const { id } = await params;
   const { user, paciente, miAsignacionActiva } = await cargarExpediente(id);
 
-  const [notas, recetas, cirugias] = await Promise.all([
+  const [notas, recetas, cirugias, cuentaPortal, invitacionPendiente] = await Promise.all([
     db.notaEvolucion.count({ where: { asignacion: { pacienteId: id }, estado: "FIRMADA" } }),
     db.receta.count({ where: { asignacion: { pacienteId: id }, estado: "EMITIDA" } }),
     db.expedienteQuirurgico.count({ where: { pacienteId: id } }),
+    db.usuario.findFirst({ where: { pacienteId: id }, select: { email: true, ultimoAcceso: true } }),
+    db.invitacionPortal.findFirst({
+      where: { pacienteId: id, usadoEn: null, expiresAt: { gte: new Date() } },
+      select: { email: true, expiresAt: true },
+    }),
   ]);
+  const puedeInvitar = user.rol === "ADMIN" || !!miAsignacionActiva;
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -71,6 +78,33 @@ export default async function ResumenPaciente({ params }: { params: Promise<{ id
             <p>Expedientes quirúrgicos: <strong>{cirugias}</strong></p>
           </CardBody>
         </Card>
+
+        {puedeInvitar && (
+          <Card>
+            <CardHeader title="Portal del paciente" subtitle="Acceso propio para consultar su expediente." />
+            <CardBody>
+              {cuentaPortal ? (
+                <p className="text-sm text-emerald-700">
+                  Cuenta activa ({cuentaPortal.email})
+                  {cuentaPortal.ultimoAcceso
+                    ? ` · último acceso ${cuentaPortal.ultimoAcceso.toLocaleDateString("es-MX", { timeZone: "America/Mexico_City" })}`
+                    : " · aún sin iniciar sesión"}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {invitacionPendiente && (
+                    <p className="text-xs text-amber-700">
+                      Invitación pendiente a {invitacionPendiente.email} (vence el{" "}
+                      {invitacionPendiente.expiresAt.toLocaleString("es-MX", { timeZone: "America/Mexico_City" })}).
+                      Enviar una nueva invitación reemplaza esta.
+                    </p>
+                  )}
+                  <InvitarPortalForm pacienteId={id} emailSugerido={paciente.email ?? ""} />
+                </div>
+              )}
+            </CardBody>
+          </Card>
+        )}
 
         {miAsignacionActiva && (
           <Card>

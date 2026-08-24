@@ -21,6 +21,7 @@ export type SessionUser = {
   rol: RolClave;
   debeCambiarPassword: boolean;
   doctorId: string | null;
+  pacienteId: string | null;
   workspaceId: string;
   workspaceTipo: TipoWorkspace;
 };
@@ -32,6 +33,16 @@ export async function hashPassword(password: string) {
 export async function getClientIp(): Promise<string | null> {
   const h = await headers();
   return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+}
+
+// Origen absoluto de la petición actual, para construir enlaces en correos
+// (invitación al portal). Se deriva de los headers del proxy en vez de un env var
+// nuevo, igual que getClientIp.
+export async function getBaseUrl(): Promise<string> {
+  const h = await headers();
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const host = h.get("host") ?? "localhost:3000";
+  return `${proto}://${host}`;
 }
 
 export async function login(email: string, password: string): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -116,6 +127,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     rol: u.rol,
     debeCambiarPassword: u.debeCambiarPassword,
     doctorId: u.doctor?.id ?? null,
+    pacienteId: u.pacienteId,
     workspaceId: u.workspaceId,
     workspaceTipo: u.workspace.tipo,
   };

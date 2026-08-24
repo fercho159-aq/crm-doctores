@@ -28,6 +28,16 @@ export async function requireCapturista(): Promise<SessionUser> {
   redirect("/");
 }
 
+// Portal del paciente: exige rol PACIENTE y que la cuenta tenga cuenta vinculada.
+// El pacienteId sale siempre de la sesión, nunca de params/FormData — así ninguna
+// página ni Server Action del portal puede leer/escribir el expediente de otro
+// paciente por más que se manipule un id en la URL.
+export async function requirePaciente(): Promise<SessionUser & { pacienteId: string }> {
+  const user = await requireRole("PACIENTE");
+  if (!user.pacienteId) redirect("/login");
+  return user as SessionUser & { pacienteId: string };
+}
+
 export class AuthzError extends Error {}
 
 export async function assertRole(user: SessionUser, ...roles: RolClave[]) {

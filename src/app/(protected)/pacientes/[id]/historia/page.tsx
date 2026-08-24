@@ -1,7 +1,17 @@
 import { db } from "@/lib/db";
-import { Card, CardHeader, CardBody, EmptyState, Button } from "@/components/ui";
+import { Card, CardHeader, CardBody, EmptyState, Button, Badge } from "@/components/ui";
 import { cargarExpediente } from "../expediente";
 import { generarHistoriaClinica } from "@/actions/formatos";
+import { RevisarAportacionForm } from "./RevisarAportacionForm";
+
+const CATEGORIA_LABEL: Record<string, string> = {
+  ALERGIA: "Alergia",
+  MEDICAMENTO: "Medicamento actual",
+  ANTECEDENTE: "Antecedente",
+  SINTOMA: "Síntoma",
+  OBSERVACION: "Observación",
+  PRECONSULTA: "Antes de consulta",
+};
 
 function Campo({ label, valor }: { label: string; valor?: string | null }) {
   if (!valor) return null;
@@ -15,20 +25,51 @@ function Campo({ label, valor }: { label: string; valor?: string | null }) {
 
 export default async function HistoriaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await cargarExpediente(id, { sinBitacora: true });
+  const { miAsignacionActiva } = await cargarExpediente(id, { sinBitacora: true });
 
-  const hojas = await db.hojaPrimerLlenado.findMany({
-    where: { pacienteId: id, estado: "CERRADA" },
-    include: { capturadoPor: true },
-    orderBy: { version: "desc" },
-  });
-
-  if (hojas.length === 0) {
-    return <EmptyState title="Aún no hay historia clínica cerrada para este paciente." />;
-  }
+  const [hojas, aportacionesPendientes] = await Promise.all([
+    db.hojaPrimerLlenado.findMany({
+      where: { pacienteId: id, estado: "CERRADA" },
+      include: { capturadoPor: true },
+      orderBy: { version: "desc" },
+    }),
+    db.aportacionPaciente.findMany({
+      where: { pacienteId: id, estado: "PENDIENTE_REVISION" },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   return (
     <div className="space-y-4">
+      {aportacionesPendientes.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Información proporcionada por el paciente"
+            subtitle="No es una nota médica firmada. Revise y decida si la incorpora a su propia nota."
+          />
+          <CardBody className="space-y-3">
+            {aportacionesPendientes.map((a) => (
+              <div key={a.id} className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge tone="amber">{CATEGORIA_LABEL[a.categoria] ?? a.categoria}</Badge>
+                  <span className="text-xs text-slate-500">
+                    {a.createdAt.toLocaleString("es-MX", { timeZone: "America/Mexico_City" })}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-slate-800">{a.contenido}</p>
+                {miAsignacionActiva && (
+                  <RevisarAportacionForm aportacionId={a.id} asignacionId={miAsignacionActiva.id} />
+                )}
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+      )}
+
+      {hojas.length === 0 ? (
+        <EmptyState title="Aún no hay historia clínica cerrada para este paciente." />
+      ) : (
+      <div className="space-y-4">
       <div className="flex justify-end">
         <form action={generarHistoriaClinica.bind(null, id) as unknown as (fd: FormData) => Promise<void>}>
           <Button type="submit" variant="secondary" size="sm">
@@ -70,6 +111,8 @@ export default async function HistoriaPage({ params }: { params: Promise<{ id: s
           </CardBody>
         </Card>
       ))}
+      </div>
+      )}
     </div>
   );
 }
