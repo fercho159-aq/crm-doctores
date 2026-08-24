@@ -42,6 +42,7 @@ const SOLUTIONS: Record<Solution, { label: string; icon: string; available: bool
           "Todo lo del plan Receta",
           "El paciente revisa su consulta, recetas e historial desde la app o sitio web",
           "Importa tus pacientes actuales (nombre, teléfono, correo, enfermedad)",
+          "Personaliza tu consultorio con logo y colores propios",
           "Historia clínica completa (NOM-004)",
           "Notas de evolución inmutables",
           "Gestión de pacientes",
