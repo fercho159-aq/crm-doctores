@@ -152,7 +152,7 @@ export function ConsultaRapidaForm({ asignacionId }: { asignacionId: string }) {
 
       <div className="flex justify-end">
         <SubmitButton className="bg-blue-700 px-8 text-white hover:bg-blue-800">
-          Emitir receta y enviar al paciente
+          Emitir receta
         </SubmitButton>
       </div>
     </form>
