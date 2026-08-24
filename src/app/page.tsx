@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TestimonialCarousel } from "./TestimonialCarousel";
+import { NewsCarousel } from "./NewsCarousel";
 import { LandingNav } from "./LandingNav";
 
 export default function LandingPage() {
@@ -95,13 +96,9 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Badge de COFEPRIS */}
-            <div className="absolute -bottom-5 -left-4 z-10 flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-xl ring-1 ring-black/5">
-              <img src="/cofepris.png" alt="COFEPRIS" className="h-10 w-auto shrink-0" />
-              <div>
-                <p className="text-xs font-bold text-slate-800">COFEPRIS</p>
-                <p className="text-[10px] text-slate-500">Comisión Federal para la Protección<br/>contra Riesgos Sanitarios</p>
-              </div>
+            {/* Badge de COFEPRIS — solo logo */}
+            <div className="absolute -bottom-5 -left-4 z-10 rounded-xl bg-white px-4 py-3 shadow-xl ring-1 ring-black/5">
+              <img src="/cofepris.png" alt="COFEPRIS" className="h-10 w-auto" />
             </div>
           </div>
         </div>
@@ -128,9 +125,9 @@ export default function LandingPage() {
           </div>
 
           {/* Video + features side by side */}
-          <div className="mt-12 grid gap-8 sm:grid-cols-2">
-            {/* Video */}
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="mt-12 grid items-center gap-8 sm:grid-cols-2">
+            {/* Video — compacto */}
+            <div className="mx-auto max-w-xs overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="aspect-[9/16] w-full">
                 <iframe
                   src="https://www.youtube.com/embed/CrnrU4wFhIY"
@@ -140,7 +137,7 @@ export default function LandingPage() {
                   className="h-full w-full"
                 />
               </div>
-              <div className="p-4 text-center">
+              <div className="p-3 text-center">
                 <p className="text-xs font-medium text-slate-400">Video informativo — COFEPRIS</p>
               </div>
             </div>
@@ -254,6 +251,21 @@ export default function LandingPage() {
                 Notas de evolución, recetas PDF profesionales y envío automático al correo del paciente.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Noticias — por qué tener expediente digital */}
+      <section className="px-6 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900">
+            En las noticias
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-slate-500">
+            El expediente clínico digital ya es tema nacional
+          </p>
+          <div className="mt-10">
+            <NewsCarousel />
           </div>
         </div>
       </section>

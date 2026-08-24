@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MIT Medical Tower — Expediente Clínico",
-  description: "Sistema CRM médico / Expediente Clínico Electrónico — MIT Medical Tower",
+  title: "NovaMedics — Expediente Clínico Electrónico",
+  description: "Expediente clínico digital para consultorios, clínicas y hospitales en México. Cumple con la NOM-004-SSA3-2012.",
   robots: { index: false, follow: false },
 };
 
