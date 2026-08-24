@@ -42,6 +42,12 @@ const NAV_DOCTOR_BASIC: { href: string; label: string }[] = [
   { href: "/mi-perfil", label: "Mi perfil" },
 ];
 
+const NAV_SUPERADMIN: { href: string; label: string }[] = [
+  { href: "/superadmin", label: "Dashboard" },
+];
+
+const SUPERADMIN_EMAIL = "info@novamedics.com.mx";
+
 const ROL_LABEL: Record<string, string> = {
   ADMIN: "Administrador",
   DOCTOR: "Doctor(a)",
@@ -54,7 +60,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   if (!user) redirect("/login");
   if (user.debeCambiarPassword) redirect("/cambiar-password");
 
-  const nav = user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
+  const isSuperadmin = user.email === SUPERADMIN_EMAIL;
+  const nav = isSuperadmin ? NAV_SUPERADMIN : user.rol === "DOCTOR" && user.workspaceTipo === "BASIC" ? NAV_DOCTOR_BASIC : (NAV[user.rol] ?? []);
 
   return (
     <div className="min-h-screen">
@@ -81,7 +88,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
           <div className="flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-medium text-slate-800">{user.nombreCompleto}</p>
-              <Badge tone="blue">{ROL_LABEL[user.rol]}</Badge>
+              <Badge tone="blue">{isSuperadmin ? "Superadmin" : ROL_LABEL[user.rol]}</Badge>
             </div>
             <form action={logoutAction}>
               <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50">

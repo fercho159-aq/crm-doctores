@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import Link from "next/link";
 
 const SUPERADMIN_EMAIL = "info@novamedics.com.mx";
 
@@ -60,7 +61,7 @@ export default async function SuperadminPage() {
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-bold text-slate-900">Usuarios por plan</h2>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 p-4">
+          <Link href="/superadmin/plan/basic" className="rounded-xl border border-slate-200 p-4 transition hover:shadow-md hover:border-emerald-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Receta (Gratis)</p>
@@ -71,8 +72,9 @@ export default async function SuperadminPage() {
             <div className="mt-3 h-2 rounded-full bg-slate-100">
               <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${totalWorkspaces ? (planReceta / totalWorkspaces) * 100 : 0}%` }} />
             </div>
-          </div>
-          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+            <p className="mt-2 text-xs text-blue-600 font-semibold">Ver listado →</p>
+          </Link>
+          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4 opacity-60">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Consultorio ($199)</p>
@@ -84,7 +86,7 @@ export default async function SuperadminPage() {
               <div className="h-2 rounded-full bg-blue-500" style={{ width: "0%" }} />
             </div>
           </div>
-          <div className="rounded-xl border border-slate-200 p-4">
+          <Link href="/superadmin/plan/clinic" className="rounded-xl border border-slate-200 p-4 transition hover:shadow-md hover:border-purple-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Clínica Pro ($699)</p>
@@ -95,7 +97,8 @@ export default async function SuperadminPage() {
             <div className="mt-3 h-2 rounded-full bg-slate-100">
               <div className="h-2 rounded-full bg-purple-500" style={{ width: `${totalWorkspaces ? (planClinica / totalWorkspaces) * 100 : 0}%` }} />
             </div>
-          </div>
+            <p className="mt-2 text-xs text-blue-600 font-semibold">Ver listado →</p>
+          </Link>
         </div>
       </div>
 
