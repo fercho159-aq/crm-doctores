@@ -101,6 +101,7 @@ export async function registrarPaciente(_p: ActionState, fd: FormData): Promise<
         estado: "CERRADA",
         disponibleConsulta: true,
         fechaCierre: new Date(),
+        capturadoPorId: user.id,
       },
     });
     const propia = await db.doctorEspecialidad.findFirst({ where: { doctorId: user.doctorId } });
