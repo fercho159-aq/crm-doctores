@@ -129,10 +129,10 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          {/* Bento grid */}
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Big card — Video */}
-            <div className="row-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:col-span-1">
+          {/* Video + features side by side */}
+          <div className="mt-12 grid gap-8 sm:grid-cols-2">
+            {/* Video */}
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="aspect-[9/16] w-full">
                 <iframe
                   src="https://www.youtube.com/embed/CrnrU4wFhIY"
@@ -143,57 +143,65 @@ export default function LandingPage() {
                 />
               </div>
               <div className="p-4 text-center">
-                <p className="text-xs font-medium text-slate-400">📺 Video informativo — COFEPRIS</p>
+                <p className="text-xs font-medium text-slate-400">Video informativo — COFEPRIS</p>
               </div>
             </div>
 
-            {/* Feature cards */}
-            <BentoCard
-              icon="📋"
-              color="bg-blue-100"
-              title="Historia clínica digital"
-              description="Antecedentes, exploración física y diagnóstico — NOM-004, 6.1."
-            />
-            <BentoCard
-              icon="📝"
-              color="bg-indigo-100"
-              title="Notas inmutables"
-              description="Una vez firmadas no se borran. Solo adendas. Protección legal."
-            />
-            <BentoCard
-              icon="💊"
-              color="bg-rose-100"
-              title="Recetas en PDF"
-              description="Con cédula profesional y dosis. Envío automático al paciente."
-            />
-            <BentoCard
-              icon="🏥"
-              color="bg-teal-100"
-              title="Expediente quirúrgico"
-              description="Notas pre y postoperatorias. Hojas de consumo e insumos."
-            />
-          </div>
+            {/* Feature bullets */}
+            <div className="flex flex-col justify-center">
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-sm">📋</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Historia clínica digital</p>
+                    <p className="text-sm text-slate-500">Antecedentes, exploración física y diagnóstico — NOM-004, 6.1.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-sm">📝</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Notas inmutables</p>
+                    <p className="text-sm text-slate-500">Una vez firmadas no se borran. Solo adendas. Protección legal.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-sm">💊</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Recetas en PDF</p>
+                    <p className="text-sm text-slate-500">Con cédula profesional y dosis. Envío automático al paciente.</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-teal-100 text-sm">🏥</span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Expediente quirúrgico</p>
+                    <p className="text-sm text-slate-500">Notas pre y postoperatorias. Hojas de consumo e insumos.</p>
+                  </div>
+                </li>
+              </ul>
 
-          {/* NOM card — full width below grid */}
-          <div className="mt-4 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-white p-5">
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                ⚖️
+              {/* NOM banner — justo debajo de los bullets */}
+              <div className="mt-6 rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-white p-4">
+                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-xl">
+                    ⚖️
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-slate-900">NOM-004-SSA3-2012 — Diario Oficial de la Federación</h3>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Aplica a <strong className="text-slate-700">todo sector público, social y privado</strong>. Multas y clausura por incumplimiento.
+                    </p>
+                  </div>
+                  <a
+                    href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5272787"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-lg border border-green-300 px-3 py-1.5 text-xs font-semibold text-green-700 transition hover:bg-green-50"
+                  >
+                    Leer en el DOF →
+                  </a>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-slate-900">NOM-004-SSA3-2012 — Diario Oficial de la Federación</h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Aplica a <strong className="text-slate-700">todo sector público, social y privado</strong>. Multas y clausura por incumplimiento.
-                </p>
-              </div>
-              <a
-                href="https://dof.gob.mx/nota_detalle_popup.php?codigo=5272787"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 rounded-lg border border-green-300 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-50"
-              >
-                Leer en el DOF →
-              </a>
             </div>
           </div>
         </div>
@@ -281,15 +289,4 @@ export default function LandingPage() {
   );
 }
 
-function BentoCard({ icon, color, title, description }: { icon: string; color: string; title: string; description: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-      <div className={`mb-3 flex h-12 w-12 items-center justify-center rounded-xl ${color} text-2xl`}>
-        {icon}
-      </div>
-      <h3 className="mb-1.5 text-base font-semibold text-slate-900">{title}</h3>
-      <p className="text-sm leading-relaxed text-slate-500">{description}</p>
-    </div>
-  );
-}
 
