@@ -29,7 +29,8 @@ services:
       sh -c "npx prisma migrate deploy
       && npx prisma db execute --schema prisma/schema.prisma --file prisma/immutability.sql
       && npx tsx prisma/seed.ts
-      && npx tsx prisma/seed-demo-basic.ts"
+      && npx tsx prisma/seed-demo-basic.ts
+      && npx tsx prisma/seed-portal-paciente.ts"
     environment:
       DATABASE_URL: postgresql://novamed:${POSTGRES_PASSWORD}@db:5432/novamed_db
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
