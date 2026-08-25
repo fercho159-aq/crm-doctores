@@ -17,6 +17,8 @@ const UPLOADS = process.env.UPLOADS_DIR ?? "/data/uploads";
 const ARGON2 = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 const EMAIL = "doctor.demo.basic@example.com";
 const PASSWORD = process.env.SEED_DEMO_BASIC_PASSWORD ?? "DoctorBasicDemo2026!";
+const PACIENTE_EMAIL = "paciente.demo.basic2@example.com";
+const PACIENTE_PASSWORD = "PortalDemo2026!";
 
 async function main() {
   // ── Doctor + workspace propio ──
@@ -63,8 +65,25 @@ async function main() {
     where: { workspaceId: usuario.workspaceId, nombre: "Roberto", apellidoPaterno: "Iglesias" },
   });
   if (existente) {
+    // Asegurar que la cuenta de portal exista aunque el paciente ya estaba creado
+    const portalExiste = await prisma.usuario.findUnique({ where: { email: PACIENTE_EMAIL } });
+    if (!portalExiste) {
+      await prisma.usuario.create({
+        data: {
+          workspaceId: usuario.workspaceId,
+          rol: "PACIENTE",
+          email: PACIENTE_EMAIL,
+          passwordHash: await hash(PACIENTE_PASSWORD, ARGON2),
+          nombreCompleto: "Roberto Iglesias Durán",
+          debeCambiarPassword: false,
+          pacienteId: existente.id,
+        },
+      });
+      console.log(`Cuenta portal creada: ${PACIENTE_EMAIL} / ${PACIENTE_PASSWORD}`);
+    }
     console.log(`Paciente demo BASIC ya existe: ${existente.numeroExpediente} (${existente.id})`);
     console.log(`Doctor demo: ${EMAIL} / ${PASSWORD}`);
+    console.log(`Portal paciente: ${PACIENTE_EMAIL} / ${PACIENTE_PASSWORD}`);
     return;
   }
 
@@ -84,6 +103,19 @@ async function main() {
       email: "paciente.demo.basic@example.com",
       derechohabiencia: "Ninguna",
       createdById: usuario.id,
+    },
+  });
+
+  // ── Cuenta de portal para el paciente ──
+  await prisma.usuario.create({
+    data: {
+      workspaceId: usuario.workspaceId,
+      rol: "PACIENTE",
+      email: PACIENTE_EMAIL,
+      passwordHash: await hash(PACIENTE_PASSWORD, ARGON2),
+      nombreCompleto: "Roberto Iglesias Durán",
+      debeCambiarPassword: false,
+      pacienteId: paciente.id,
     },
   });
 
@@ -246,6 +278,7 @@ async function main() {
   console.log(`\nRegistro demo BASIC completo:`);
   console.log(`  Doctor: ${EMAIL} / ${PASSWORD}`);
   console.log(`  Paciente: Roberto Iglesias Durán — ${paciente.numeroExpediente} (id ${paciente.id})`);
+  console.log(`  Portal paciente: ${PACIENTE_EMAIL} / ${PACIENTE_PASSWORD}`);
   console.log(`  Receta: ${folio}`);
   console.log(`  Nota SOAP firmada y receta con PDF cargadas.`);
 }
