@@ -201,6 +201,75 @@ export async function enviarBienvenida(email: string, nombre: string) {
   }
 }
 
+// Notificación al doctor: un paciente reportó información nueva desde su portal.
+// Solo se envía si el workspace tiene plan CONSULTORIO o superior.
+export async function notificarAportacionAlDoctor(
+  doctorEmail: string,
+  doctorNombre: string,
+  pacienteNombre: string,
+  categoria: string,
+) {
+  const transporter = getTransporter();
+  if (!transporter) return;
+  const fromEmail = process.env.SMTP_USER ?? "info@novamedics.com.mx";
+  const cats: Record<string, string> = {
+    ALERGIA: "Alergia", MEDICAMENTO: "Medicamento", ANTECEDENTE: "Antecedente",
+    SINTOMA: "Síntoma", OBSERVACION: "Observación", PRECONSULTA: "Pre-consulta",
+  };
+  try {
+    await transporter.sendMail({
+      from: `"NovaMedics" <${fromEmail}>`,
+      to: doctorEmail,
+      subject: `Nuevo reporte de paciente — ${pacienteNombre}`,
+      text: [
+        `Dr(a). ${doctorNombre}:`,
+        ``,
+        `Su paciente ${pacienteNombre} reportó información nueva desde el portal:`,
+        `Categoría: ${cats[categoria] ?? categoria}`,
+        ``,
+        `Puede revisarla en el expediente del paciente dentro de NovaMedics.`,
+        ``,
+        `Este correo fue generado automáticamente. No responda a este mensaje.`,
+      ].join("\n"),
+    });
+  } catch {
+    // Best-effort: no bloquear la operación del paciente
+  }
+}
+
+// Notificación al paciente: el doctor revisó su aportación.
+export async function notificarRevisionAlPaciente(
+  pacienteEmail: string,
+  pacienteNombre: string,
+  doctorNombre: string,
+  decision: "INCORPORADA" | "RECHAZADA",
+  notaRevisor?: string | null,
+) {
+  const transporter = getTransporter();
+  if (!transporter) return;
+  const fromEmail = process.env.SMTP_USER ?? "info@novamedics.com.mx";
+  const estado = decision === "INCORPORADA" ? "incorporada a su expediente" : "revisada por su médico";
+  try {
+    await transporter.sendMail({
+      from: `"NovaMedics" <${fromEmail}>`,
+      to: pacienteEmail,
+      subject: `Actualización de su expediente — NovaMedics`,
+      text: [
+        `Estimado(a) ${pacienteNombre}:`,
+        ``,
+        `La información que reportó fue ${estado} por ${doctorNombre}.`,
+        ...(notaRevisor ? [`Nota del médico: ${notaRevisor}`] : []),
+        ``,
+        `Puede consultar los detalles en su portal de paciente.`,
+        ``,
+        `Este correo fue generado automáticamente. No responda a este mensaje.`,
+      ].join("\n"),
+    });
+  } catch {
+    // Best-effort
+  }
+}
+
 export async function reintentarEnvio(recetaId: string, destinatario: string) {
   await db.$transaction([
     db.emailQueue.updateMany({

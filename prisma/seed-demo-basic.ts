@@ -25,7 +25,7 @@ async function main() {
   let usuario = await prisma.usuario.findUnique({ where: { email: EMAIL }, include: { doctor: true } });
   if (!usuario) {
     const workspace = await prisma.workspace.create({
-      data: { tipo: "BASIC", nombre: "Consultorio — Dra. Sofía Ramos Demo" },
+      data: { tipo: "BASIC", plan: "CONSULTORIO", nombre: "Consultorio — Dra. Sofía Ramos Demo" },
     });
     usuario = await prisma.usuario.create({
       data: {

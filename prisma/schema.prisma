@@ -18,9 +18,16 @@ enum TipoWorkspace {
   BASIC
 }
 
+enum PlanTier {
+  RECETA
+  CONSULTORIO
+  CLINICA_PRO
+}
+
 model Workspace {
   id        String        @id @default(uuid()) @db.Uuid
   tipo      TipoWorkspace @default(CLINIC)
+  plan      PlanTier      @default(RECETA)
   nombre    String
   createdAt DateTime      @default(now()) @map("created_at")
 

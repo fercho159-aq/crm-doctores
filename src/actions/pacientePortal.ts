@@ -8,6 +8,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requirePaciente } from "@/lib/authz";
 import { audit } from "@/lib/audit";
+import { notificarAportacionAlDoctor } from "@/lib/email";
 import type { ActionState } from "./auth";
 import type { CategoriaAporte, TipoDocumento } from "@prisma/client";
 
@@ -118,6 +119,31 @@ export async function crearAportacion(_p: ActionState, fd: FormData): Promise<Ac
     usuarioId: user.id, rol: "PACIENTE", accion: "APORTAR_INFORMACION", entidad: "aportacion_paciente",
     entidadId: aportacion.id, pacienteId: user.pacienteId, datosDespues: { categoria },
   });
+
+  // Notificar al doctor por email (solo plan CONSULTORIO o superior)
+  if (user.workspacePlan !== "RECETA") {
+    const paciente = await db.paciente.findUnique({
+      where: { id: user.pacienteId },
+      select: {
+        nombre: true, apellidoPaterno: true,
+        asignaciones: {
+          select: { doctor: { select: { usuario: { select: { email: true, nombreCompleto: true } } } } },
+          take: 1,
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+    const doctor = paciente?.asignaciones[0]?.doctor?.usuario;
+    if (doctor) {
+      notificarAportacionAlDoctor(
+        doctor.email,
+        doctor.nombreCompleto,
+        `${paciente.nombre} ${paciente.apellidoPaterno}`,
+        categoria,
+      );
+    }
+  }
+
   revalidatePath("/portal/expediente");
   return { ok: true };
 }

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireRole, assertAsignacionPropia, AuthzError } from "@/lib/authz";
 import { audit } from "@/lib/audit";
+import { notificarRevisionAlPaciente } from "@/lib/email";
 import type { ActionState } from "./auth";
 
 // El médico revisa lo que el paciente aportó y decide si lo incorpora (tecleándolo
@@ -48,6 +49,24 @@ export async function revisarAportacion(aportacionId: string, _p: ActionState, f
     usuarioId: user.id, rol: user.rol, accion: "REVISAR_APORTACION", entidad: "aportacion_paciente",
     entidadId: aportacionId, pacienteId: aportacion.pacienteId, datosDespues: { decision: parsed.data.decision },
   });
+
+  // Notificar al paciente por email (solo plan CONSULTORIO o superior)
+  if (user.workspacePlan !== "RECETA") {
+    const paciente = await db.paciente.findUnique({
+      where: { id: aportacion.pacienteId },
+      select: { nombre: true, apellidoPaterno: true, email: true },
+    });
+    if (paciente?.email) {
+      notificarRevisionAlPaciente(
+        paciente.email,
+        `${paciente.nombre} ${paciente.apellidoPaterno}`,
+        user.nombreCompleto,
+        parsed.data.decision,
+        parsed.data.notaRevisor,
+      );
+    }
+  }
+
   revalidatePath(`/pacientes/${aportacion.pacienteId}/historia`);
   return { ok: true };
 }

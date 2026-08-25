@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 import { hash, verify } from "@node-rs/argon2";
 import { db } from "./db";
 import { audit } from "./audit";
-import type { RolClave, TipoWorkspace } from "@prisma/client";
+import type { RolClave, TipoWorkspace, PlanTier } from "@prisma/client";
 
 const SESSION_COOKIE = "mit_session";
 const SESSION_HOURS = 8;
@@ -24,6 +24,7 @@ export type SessionUser = {
   pacienteId: string | null;
   workspaceId: string;
   workspaceTipo: TipoWorkspace;
+  workspacePlan: PlanTier;
 };
 
 export async function hashPassword(password: string) {
@@ -130,6 +131,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     pacienteId: u.pacienteId,
     workspaceId: u.workspaceId,
     workspaceTipo: u.workspace.tipo,
+    workspacePlan: u.workspace.plan,
   };
 });
 
