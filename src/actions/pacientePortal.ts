@@ -129,7 +129,7 @@ export async function crearAportacion(_p: ActionState, fd: FormData): Promise<Ac
         asignaciones: {
           select: { doctor: { select: { usuario: { select: { email: true, nombreCompleto: true } } } } },
           take: 1,
-          orderBy: { createdAt: "desc" },
+          orderBy: { fechaAsignacion: "desc" },
         },
       },
     });
