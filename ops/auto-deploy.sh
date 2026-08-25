@@ -31,7 +31,7 @@ echo "$(date): Nuevos commits detectados, desplegando..." >> "$LOG"
 
 git pull --quiet >> "$LOG" 2>&1
 docker compose build --no-cache >> "$LOG" 2>&1
-docker compose run --rm migrate >> "$LOG" 2>&1
+docker compose down >> "$LOG" 2>&1
 docker compose up -d >> "$LOG" 2>&1
 
 echo "$(date): Deploy completado ($(git rev-parse --short HEAD))" >> "$LOG"
